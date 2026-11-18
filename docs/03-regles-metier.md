@@ -24,7 +24,7 @@ Cette page est la **spécification du moteur de calcul**. Elle est issue du prot
 **RG-02 — Dénominateur.** `den = 1 − m − f`. Le calcul est valide si `den > 0,05` et `CR > 0`. Sinon : pas de prix, message explicite (EXG-27).
 
 **RG-03 — Prix.** `P_brut = CR ÷ den`.
-- **Arrondi désactivé** (interrupteur ; il est **activé par défaut**, pas par défaut selon l'activité : revente 500, fabrication 25, prestation 500) : `P = arrondi_au_franc(P_brut)`.
+- **Arrondi désactivé** (interrupteur ; il est **activé par défaut**, pas par défaut selon l'activité : revente 500, fabrication 25, prestation 500) : `P = ⌈P_brut⌉` (franc **supérieur**, jamais en dessous du prix brut : garantit que la marge visée est tenue ; le prototype arrondissait au plus proche, ce qui pouvait rogner la marge de moins d'un franc).
 - **Arrondi activé** avec un pas `a` > 0 : `P = ⌈P_brut ÷ a⌉ × a` (toujours **au-dessus**, jamais sous le prix brut).
 - L'arrondi s'applique au **prix de référence** choisi par le commutateur HT/TTC (RG-06).
 
@@ -80,7 +80,7 @@ Coefficient (P ÷ D) : 1,51 · 2,14 · 1,83.
 | Volume nul | bissap avec V = 0 | **pas de prix** (le prototype affiche 300 F pour un coût de revient de 320 F : défaut) |
 | Marge + frais trop hauts | m = 70 %, f = 30 % | `den ≤ 0,05` → pas de prix |
 | Coût nul | aucune ligne | pas de prix |
-| Arrondi désactivé | switch off | arrondi au franc le plus proche de P_brut (432,43 → 432) |
+| Arrondi désactivé | switch off | franc supérieur de P_brut (432,43 → **433**) |
 | Mode TTC | P_HT_brut = 432,43 ; t = 18 % ; a = 25 | TTC brut 510,27 → **TTC 525** ; HT = 444,92 ; marge ≥ visée |
 | Arrondi supérieur | P_brut = 432,43 ; a = 25 | 450 |
 | P_brut déjà rond | P_brut = 450 ; a = 25 | 450 (pas 475) |

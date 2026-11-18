@@ -100,7 +100,7 @@ P1 d'abord car tout en dépend et il est durable. P2 puis P4 sur le web (rapide 
 
 ## Livrables des POC
 
-1. Dépôt en monorepo initialisé (`packages/domain`, `apps/app`), avec CI minimale (tests, vérification des imports du domaine).
+1. Dépôt en monorepo initialisé (`src/clients/domain`, `src/clients/app`, `src/admin`, `src/infra`), avec CI minimale (tests, vérification des imports du domaine).
 2. Tableau de mesures dans l'ADR-0008.
 3. Liste des écarts à la spécification trouvés pendant les POC.
 4. Décision finale consignée.

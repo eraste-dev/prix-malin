@@ -20,5 +20,8 @@ Option 2. Le moteur est une bibliothèque **pure** (entrées → sorties, pas d'
 - (−) Discipline de frontière : aucune règle métier dans l'UI. Revue de code dédiée.
 - Influence le choix de stack : un langage qui permet le partage du moteur entre client et serveur est un atout.
 
+## Emplacement (2026-11-18)
+Le moteur vit dans **`src/clients/domain`** : les calculs restent sur l'appareil, le serveur ne recalcule pas les prix. Il est consommé par l'app publique et, plus tard, par le calculateur du site public. Le back-office n'en dépend pas par défaut ; si un aperçu (BO-09) l'exige, il pourra l'importer en lecture seule.
+
 ## Vérification
 Le dossier du moteur n'importe rien d'extérieur (contrôle automatique des dépendances). Couverture 100 % des règles RG.

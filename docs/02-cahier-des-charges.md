@@ -133,7 +133,7 @@ Format Given/When/Then, destinés à devenir des tests. Les valeurs chiffrées v
 
 **EXG-23 — Arrondi désactivé**
 - *Given* l'arrondi désactivé et un prix brut de 432,43 F
-  *Then* le prix est 432 F.
+  *Then* le prix est 433 F (franc supérieur, jamais sous le prix brut).
 
 **EXG-03 — Changement de type**
 - *Given* un calcul modifié par l'utilisateur
