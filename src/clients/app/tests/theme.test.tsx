@@ -4,10 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../src/App";
 import { THEME_STORAGE_KEY, parseTheme, resolveTheme } from "../src/lib/theme";
 
-/** jsdom n'a pas matchMedia : on simule la préférence du système. */
+/**
+ * jsdom n'a pas matchMedia : on simule la préférence du système. Ces tests portent sur le thème, pas sur le
+ * mouvement : le système demande ici de réduire les animations (aucun élément masqué en cours de fondu).
+ */
 function mockSystemPrefersDark(prefersDark: boolean): void {
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: prefersDark,
+    matches: query.includes("reduce") ? true : prefersDark,
     media: query,
     addEventListener: () => undefined,
     removeEventListener: () => undefined,

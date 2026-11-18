@@ -31,7 +31,7 @@ export function AmountField({ id, label, hint, example, unit, beat = 0, value, o
   }
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-4">
       <Reveal as={Label} beat={beat} htmlFor={id} className="text-base font-semibold">
         {label}
       </Reveal>

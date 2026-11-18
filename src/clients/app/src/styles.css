@@ -26,6 +26,7 @@
   --secondary-foreground: #ffffff;
   --muted: #ede3d8;
   --muted-foreground: #6b5b52;
+  --positive: #2f4f43;
   --accent: #ede3d8;
   --accent-foreground: #241915;
   --destructive: #a8321f;
@@ -46,6 +47,7 @@
     --secondary-foreground: #f4ebe2;
     --muted: #31261f;
     --muted-foreground: #b7a99e;
+    --positive: #8fc3ab;
     --accent: #31261f;
     --accent-foreground: #f4ebe2;
     --destructive: #f08a76;
@@ -67,6 +69,7 @@
   --secondary-foreground: #f4ebe2;
   --muted: #31261f;
   --muted-foreground: #b7a99e;
+  --positive: #8fc3ab;
   --accent: #31261f;
   --accent-foreground: #f4ebe2;
   --destructive: #f08a76;
@@ -95,6 +98,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-positive: var(--positive);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
@@ -109,6 +113,16 @@
   }
   html {
     font-size: 16px;
+  }
+  /* Tailwind v4 ne met plus cursor: pointer sur les boutons (v3 le faisait) et shadcn compte dessus. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  button:disabled {
+    cursor: not-allowed;
   }
   body {
     @apply bg-background text-foreground font-sans font-medium antialiased;

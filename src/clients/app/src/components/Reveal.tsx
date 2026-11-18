@@ -1,8 +1,9 @@
-import type { ComponentPropsWithoutRef, ElementType } from "react";
-import { cn } from "@/lib/utils";
-import { EMPHASIS_CLASS, FADE_CLASS, REVEAL_CLASS, revealDelay } from "../lib/motion";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { useRef, type ComponentPropsWithoutRef, type ElementType } from "react";
+import { REVEAL, REVEAL_CLEAR_PROPS, motionAllowed, revealDelayMs, type RevealVariant } from "../lib/motion";
 
-const VARIANT_CLASS = { rise: REVEAL_CLASS, fade: FADE_CLASS, emphasis: EMPHASIS_CLASS } as const;
+gsap.registerPlugin(useGSAP);
 
 type RevealProps<T extends ElementType> = {
   readonly as?: T;
@@ -11,25 +12,26 @@ type RevealProps<T extends ElementType> = {
   /** Rang de l'élément dans son temps fort : chacun s'anime à son tour. */
   readonly sub?: number;
   /** `rise` : fondu + montée ; `fade` : surface seule ; `emphasis` : révélation du résultat. */
-  readonly variant?: keyof typeof VARIANT_CLASS;
+  readonly variant?: RevealVariant;
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "beat" | "sub" | "variant">;
 
-/** Un élément qui entre seul, à son rang dans la chorégraphie commune. */
-export function Reveal<T extends ElementType = "div">({
-  as,
-  beat,
-  sub = 0,
-  variant = "rise",
-  className,
-  style,
-  ...rest
-}: RevealProps<T>) {
+/**
+ * Un élément qui entre seul, à son rang dans la chorégraphie commune (GSAP, ADR-0011).
+ * Sous « réduire les animations », rien n'est posé : l'élément est visible tout de suite.
+ */
+export function Reveal<T extends ElementType = "div">({ as, beat, sub = 0, variant = "rise", ...rest }: RevealProps<T>) {
   const Component: ElementType = as ?? "div";
-  return (
-    <Component
-      className={cn(VARIANT_CLASS[variant], className)}
-      style={{ ...revealDelay(beat, sub), ...style }}
-      {...rest}
-    />
+  const ref = useRef<HTMLElement>(null);
+  const delayMs = revealDelayMs(beat, sub);
+
+  useGSAP(
+    () => {
+      if (!motionAllowed() || ref.current === null) return;
+      const { from, duration, ease } = REVEAL[variant];
+      gsap.from(ref.current, { ...from, duration, ease, delay: delayMs / 1000, clearProps: REVEAL_CLEAR_PROPS });
+    },
+    { scope: ref },
   );
+
+  return <Component ref={ref} data-reveal-delay={delayMs} {...rest} />;
 }

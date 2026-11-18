@@ -22,3 +22,17 @@ export function formatBreakEven(units: number | null): string {
 export function formatAmount(value: number | null): string {
   return value === null ? "" : formatter.format(value);
 }
+
+const moneyFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
+
+/** Montant avec ses centimes utiles (4,5 · 51,25), sans zéros inutiles : pour les décompositions. */
+export function formatMoney(value: number): string {
+  return moneyFormatter.format(value);
+}
+
+const percentFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+
+/** Pourcentage à une décimale au plus (27,9 · 25). */
+export function formatPercent(value: number): string {
+  return percentFormatter.format(value);
+}
