@@ -1,0 +1,451 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Prix Malin</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: two columns — guided inputs on the left, a sticky "ticket de caisse" result on the right; stacks on phone */
+:root{
+  --bg:#F3F5F1; --surface:#FFFFFF; --surface-2:#EAEFE9; --ink:#14201D; --muted:#5A6B66; --line:#D5DDD6;
+  --brand:#0D5C4C; --brand-ink:#FFFFFF; --accent:#C9741A; --accent-soft:#FBEBD6;
+  --good:#15803D; --good-soft:#DCF2E3; --warn:#B45309; --warn-soft:#FDEBD3; --bad:#B42318; --bad-soft:#FBE1DE; --info:#1D5FA8; --info-soft:#DDE9F7;
+  --c-direct:#0D5C4C; --c-fixe:#5E9C8C; --c-frais:#9AA8A3; --c-marge:#C9741A; --c-tva:#C8CFCB;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1614; --surface:#17211E; --surface-2:#1F2B28; --ink:#E7EEEB; --muted:#9AAEA8; --line:#2C3B37;
+  --brand:#3FB394; --brand-ink:#08201A; --accent:#E69A45; --accent-soft:#3A2A17;
+  --good:#4ADE80; --good-soft:#14301F; --warn:#F2A54A; --warn-soft:#38270F; --bad:#F87171; --bad-soft:#3A1715; --info:#7DB3EE; --info-soft:#152A42;
+  --c-direct:#3FB394; --c-fixe:#2D7A68; --c-frais:#5E6E69; --c-marge:#E69A45; --c-tva:#3A4744; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1614; --surface:#17211E; --surface-2:#1F2B28; --ink:#E7EEEB; --muted:#9AAEA8; --line:#2C3B37;
+  --brand:#3FB394; --brand-ink:#08201A; --accent:#E69A45; --accent-soft:#3A2A17;
+  --good:#4ADE80; --good-soft:#14301F; --warn:#F2A54A; --warn-soft:#38270F; --bad:#F87171; --bad-soft:#3A1715; --info:#7DB3EE; --info-soft:#152A42;
+  --c-direct:#3FB394; --c-fixe:#2D7A68; --c-frais:#5E6E69; --c-marge:#E69A45; --c-tva:#3A4744; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.brandline{display:flex;flex-direction:column;gap:4px}
+.brandline h1{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:800}
+.brandline h1 span{color:var(--accent)}
+.brandline p{margin:0;color:var(--muted);max-width:60ch}
+nav.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:12px}
+nav.tabs button{border:0;background:transparent;color:var(--muted);font:600 14px var(--body);padding:8px 14px;border-radius:9px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.steps{display:flex;flex-direction:column;gap:16px;min-width:0}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.step-head{display:flex;gap:12px;align-items:flex-start}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--brand);color:var(--brand-ink);font:700 14px var(--display);display:grid;place-items:center}
+.step-head h2{font-size:1.15rem;font-weight:700}
+.step-head p{margin:2px 0 0;color:var(--muted);font-size:13.5px}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.modes{grid-template-columns:minmax(0,1fr)}}
+.mode{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:2px}
+.mode b{font-size:14px}
+.mode small{color:var(--muted);font-size:12.5px}
+.mode[aria-pressed="true"]{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--surface))}
+.row2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:10px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select{font:500 15px var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input[type=number]{font-variant-numeric:tabular-nums;text-align:right}
+.lines{display:flex;flex-direction:column;gap:8px}
+.lh,.line{display:grid;gap:8px;align-items:center}
+.direct .lh,.direct .line{grid-template-columns:minmax(0,1fr) 70px 100px 96px 32px}
+.fixed .lh,.fixed .line{grid-template-columns:minmax(0,1fr) 120px 32px}
+.lh{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.lh span:not(:first-child){text-align:right}
+.line .tot{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px}
+@media (max-width:560px){
+  .direct .lh{display:none}
+  .direct .line{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 32px;grid-template-areas:"l l x" "q p t"}
+  .direct .line .l{grid-area:l}.direct .line .q{grid-area:q}.direct .line .p{grid-area:p}.direct .line .tot{grid-area:t;display:none}.direct .line .x{grid-area:x}
+  .direct .line{padding-bottom:8px;border-bottom:1px dashed var(--line)}
+}
+.x{border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;border-radius:6px;height:32px}
+.x:hover{background:var(--bad-soft);color:var(--bad)}
+.add{align-self:flex-start;border:1px dashed var(--brand);background:transparent;color:var(--brand);font:600 13.5px var(--body);padding:7px 12px;border-radius:8px;cursor:pointer}
+.subtotal{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:10px;font-size:14px}
+.subtotal b{font-variant-numeric:tabular-nums;font-size:16px}
+.hint{font-size:13px;color:var(--muted);background:var(--surface-2);border-radius:8px;padding:9px 11px;margin:0}
+.hint strong{color:var(--ink)}
+.trap{background:var(--accent-soft);color:var(--ink)}
+.sliderrow{display:flex;flex-direction:column;gap:6px}
+.sliderrow .top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--muted)}
+.sliderrow .top b{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{padding:0;border:0;accent-color:var(--accent);background:transparent}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.opts{grid-template-columns:minmax(0,1fr)}}
+.check{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:500}
+.check input{width:18px;height:18px;accent-color:var(--brand)}
+
+/* Ticket */
+.ticketcol{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (max-width:900px){.ticketcol{position:static}}
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ticket .head{background:var(--brand);color:var(--brand-ink);padding:16px 18px 18px;display:flex;flex-direction:column;gap:2px}
+.ticket .head small{text-transform:uppercase;letter-spacing:.1em;font-size:11px;opacity:.85;font-weight:600}
+.bigprice{font:800 clamp(2.4rem,6vw,3.2rem)/1.05 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.bigprice span{font-size:.4em;font-weight:700;margin-left:4px}
+.ticket .head .sub{font-size:13px;opacity:.9}
+.tbody{padding:14px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.rows{display:flex;flex-direction:column}
+.rows div{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:14px;border-bottom:1px dashed var(--line)}
+.rows div:last-child{border-bottom:0}
+.rows b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.rows .em{font-weight:700}
+.dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:baseline}
+.bar{display:flex;height:16px;border-radius:5px;overflow:hidden;background:var(--surface-2)}
+.bar i{display:block;height:100%}
+.verdict{border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.verdict b{font-family:var(--display);font-size:15.5px}
+.v-good{background:var(--good-soft)} .v-good b{color:var(--good)}
+.v-warn{background:var(--warn-soft)} .v-warn b{color:var(--warn)}
+.v-bad{background:var(--bad-soft)} .v-bad b{color:var(--bad)}
+.v-info{background:var(--info-soft)} .v-info b{color:var(--info)}
+.zones{display:flex;flex-direction:column;gap:6px}
+.zones h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-family:var(--body);font-weight:600}
+.scale{position:relative;height:42px;margin-top:4px}
+.scale .track{position:absolute;left:0;right:0;top:12px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--bad) 0 var(--z1),var(--warn) var(--z1) var(--z2),var(--good) var(--z2) 100%)}
+.scale .mk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted);white-space:nowrap}
+.scale .mk::before{content:"";width:2px;height:30px;background:var(--ink);margin-bottom:2px}
+.scale .mk.c::before{background:var(--info)}
+.scale .mk.c{color:var(--info)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:9px;padding:10px 14px;font:600 14px var(--body);cursor:pointer}
+.btn.primary{background:var(--accent);color:#1d1206}
+.btn.ghost{background:var(--surface-2);color:var(--ink)}
+.toast{font-size:13px;color:var(--good);min-height:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.mini{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.mini div{display:flex;flex-direction:column;gap:2px}
+.mini small{font-size:12px;color:var(--muted)}
+.mini b{font:700 1.2rem var(--display);font-variant-numeric:tabular-nums}
+
+/* Mes prix */
+.list{display:flex;flex-direction:column;gap:10px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.item h3{font-size:1.05rem}
+.item p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.item .p{font:800 1.3rem var(--display);font-variant-numeric:tabular-nums;text-align:right}
+.item .acts{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.empty{text-align:center;color:var(--muted);padding:40px 16px;background:var(--surface);border:1px dashed var(--line);border-radius:14px}
+
+/* Comprendre */
+.learn{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.learn .card h3{font-size:1.1rem}
+.learn .card p{margin:0;color:var(--ink);font-size:14.5px;max-width:65ch}
+.formula{font:600 14px var(--body);background:var(--surface-2);border-radius:8px;padding:8px 10px;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}
+ul.clean{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:3px 8px;border-radius:6px}
+.tag.ok{background:var(--good-soft);color:var(--good)} .tag.no{background:var(--bad-soft);color:var(--bad)}
+.foot{color:var(--muted);font-size:12.5px;text-align:center}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .3s ease}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brandline">
+      <h1>Prix <span>Malin</span></h1>
+      <p>Fixez le bon prix pour votre produit ou service : couvrir tous vos coûts, garder une vraie marge, rester face à la concurrence.</p>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" id="t-calc" aria-selected="true" data-view="calc">Calculer</button>
+      <button role="tab" id="t-list" aria-selected="false" data-view="list">Mes prix</button>
+      <button role="tab" id="t-learn" aria-selected="false" data-view="learn">Comprendre</button>
+    </nav>
+  </header>
+
+  <!-- CALCULER -->
+  <section id="v-calc" class="grid">
+    <div class="steps">
+      <div class="step">
+        <div class="step-head"><div class="num">1</div><div><h2>Que vendez-vous ?</h2><p>Le type d'activité adapte les exemples de coûts.</p></div></div>
+        <div class="modes" id="modes">
+          <button class="mode" data-mode="revente"><b>Achat-revente</b><small>Boutique, commerce, import</small></button>
+          <button class="mode" data-mode="fab"><b>Je fabrique</b><small>Alimentaire, couture, artisanat</small></button>
+          <button class="mode" data-mode="service"><b>Prestation</b><small>Coiffure, conseil, réparation</small></button>
+        </div>
+        <div class="row2">
+          <label class="f">Nom du produit ou service<input id="name" type="text"></label>
+          <label class="f">Unité vendue<input id="unit" type="text" placeholder="pièce, plat, heure…"></label>
+        </div>
+      </div>
+
+      <div class="step direct">
+        <div class="step-head"><div class="num">2</div><div><h2>Coûts directs par unité</h2><p>Tout ce que vous dépensez <strong>à chaque fois</strong> que vous vendez une unité.</p></div></div>
+        <div class="lines">
+          <div class="lh"><span>Élément</span><span>Qté</span><span>Prix unit. (F)</span><span>Total</span><span></span></div>
+          <div id="directLines" class="lines"></div>
+        </div>
+        <button class="add" id="addDirect">+ Ajouter un coût</button>
+        <p class="hint trap" id="directTrap"></p>
+        <div class="subtotal"><span>Coût direct par unité</span><b id="sD">0 F</b></div>
+      </div>
+
+      <div class="step fixed">
+        <div class="step-head"><div class="num">3</div><div><h2>Charges fixes du mois</h2><p>Ce que vous payez <strong>même si vous ne vendez rien</strong>. Elles sont réparties sur vos ventes.</p></div></div>
+        <div class="lines">
+          <div class="lh"><span>Charge</span><span>Montant / mois</span><span></span></div>
+          <div id="fixedLines" class="lines"></div>
+        </div>
+        <button class="add" id="addFixed">+ Ajouter une charge</button>
+        <p class="hint trap"><strong>Piège n°1 :</strong> oublier de vous payer vous-même. Votre salaire est une charge. Sans lui, vous travaillez gratuitement.</p>
+        <label class="f">Combien d'unités vendez-vous par mois ? (soyez réaliste)<input id="volume" type="number" min="1" step="1"></label>
+        <div class="subtotal"><span>Total charges fixes</span><b id="sF">0 F</b></div>
+        <div class="subtotal" style="border-top:0;padding-top:0"><span>Part des charges fixes par unité</span><b id="sFU">0 F</b></div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><div class="num">4</div><div><h2>Votre marge et le marché</h2><p>Ce que vous voulez garder sur chaque vente, puis comparaison avec la concurrence.</p></div></div>
+        <div class="sliderrow">
+          <div class="top"><span>Marge souhaitée (part du prix de vente que vous gardez)</span><b id="mLab">25 %</b></div>
+          <input id="marge" type="range" min="0" max="70" step="1" aria-label="Marge souhaitée">
+        </div>
+        <div class="opts">
+          <label class="f">Frais de paiement (%)<input id="frais" type="number" min="0" max="20" step="0.1" title="Commission Mobile Money, terminal de paiement, plateforme de livraison…"></label>
+          <label class="f">Arrondir au<select id="arrondi"><option value="0">Franc près</option><option value="5">5 F</option><option value="25">25 F</option><option value="50">50 F</option><option value="100">100 F</option><option value="500">500 F</option></select></label>
+          <label class="f">Prix du concurrent (F)<input id="concurrent" type="number" min="0" step="5" placeholder="optionnel"></label>
+        </div>
+        <label class="check"><input id="tva" type="checkbox"> Je suis assujetti à la TVA (18 %) et je l'ajoute au prix</label>
+        <p class="hint">Les frais de paiement couvrent la commission Mobile Money, la carte bancaire ou l'appli de livraison. Mettez 0 si vos clients paient en espèces.</p>
+      </div>
+    </div>
+
+    <aside class="ticketcol">
+      <div class="ticket">
+        <div class="head">
+          <small id="tkName">Prix conseillé</small>
+          <div class="bigprice" id="price">0<span>F CFA</span></div>
+          <div class="sub" id="priceSub"></div>
+        </div>
+        <div class="tbody">
+          <div class="bar" id="bar" aria-hidden="true"></div>
+          <div class="rows" id="rows"></div>
+          <div class="verdict" id="verdict"></div>
+          <div class="zones">
+            <h3>Où se situe votre prix</h3>
+            <div class="scale" id="scale"></div>
+            <div class="legend"><span><span class="dot" style="background:var(--bad)"></span>Perte à chaque vente</span><span><span class="dot" style="background:var(--warn)"></span>Charges non couvertes</span><span><span class="dot" style="background:var(--good)"></span>Bénéfice</span></div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="save">Enregistrer ce prix</button>
+            <button class="btn ghost" id="copy">Copier le résumé</button>
+          </div>
+          <div class="toast" id="toast" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem">Pour être rentable</h3>
+        <div class="mini">
+          <div><small>Ventes minimum / mois</small><b id="seuil">–</b></div>
+          <div><small>Bénéfice estimé / mois</small><b id="profit">–</b></div>
+          <div><small>Coefficient (prix ÷ coût direct)</small><b id="coef">–</b></div>
+          <div><small>Taux de marge (sur coût)</small><b id="tmarge">–</b></div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- MES PRIX -->
+  <section id="v-list" hidden>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- COMPRENDRE -->
+  <section id="v-learn" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="learn">
+      <div class="card"><h3>1. Le coût direct</h3><p>Ce qui part avec chaque unité vendue : marchandise ou matières premières, emballage, transport de la marchandise, temps de main-d'œuvre passé dessus.</p><div class="formula">Bissap 50 cl : fleurs 75 + sucre 60 + bouteille 50 + menthe 15 + étiquette 10 = 210 F</div></div>
+      <div class="card"><h3>2. Les charges fixes</h3><p>Ce que vous payez chaque mois quoi qu'il arrive : loyer, électricité, eau, salaires, téléphone, transport, votre propre salaire, usure du matériel.</p><div class="formula">220 000 F / mois ÷ 2 000 bouteilles = 110 F par bouteille</div></div>
+      <div class="card"><h3>3. Le coût de revient</h3><p>Ce que vous coûte réellement une unité, une fois tout compté. En dessous de ce prix, vous perdez de l'argent, même si la caisse se remplit.</p><div class="formula">Coût de revient = coût direct + part des charges fixes = 320 F</div></div>
+      <div class="card"><h3>4. La marge</h3><p>Ce qui reste après avoir tout payé. Elle sert à grossir, à faire face aux imprévus, à rembourser un crédit. Attention aux deux façons de la calculer.</p><div class="formula">Taux de marque = marge ÷ prix de vente<br>Taux de marge = marge ÷ coût de revient</div><p style="font-size:13.5px;color:var(--muted)">Ajouter 25 % au coût (320 × 1,25 = 400 F) ne donne que 20 % du prix de vente. Prix Malin calcule la marge sur le prix de vente pour éviter cette erreur.</p></div>
+      <div class="card"><h3>5. Le prix de vente</h3><p>Le coût de revient divisé par ce qu'il reste une fois la marge et les frais retirés.</p><div class="formula">Prix = coût de revient ÷ (1 − marge − frais)<br>320 ÷ (1 − 25 % − 1 %) = 432 F → 450 F</div></div>
+      <div class="card"><h3>6. Le seuil de rentabilité</h3><p>Le nombre de ventes à faire chaque mois pour couvrir toutes les charges fixes. Au-delà, chaque vente rapporte du bénéfice.</p><div class="formula">Seuil = charges fixes ÷ (prix − coût direct − frais)</div></div>
+    </div>
+    <div class="two">
+      <div class="card"><span class="tag ok">À compter</span><ul class="clean">
+        <li>Votre propre salaire, même modeste</li>
+        <li>Le transport pour aller acheter la marchandise</li>
+        <li>Les pertes : casse, invendus, produits périmés, vol</li>
+        <li>L'usure du matériel (congélateur, machine, moto) étalée sur sa durée de vie</li>
+        <li>Les frais Mobile Money et commissions des plateformes</li>
+        <li>Les intérêts du crédit, les impôts et taxes (patente, TSE)</li>
+        <li>Le temps passé, y compris celui de la famille qui aide</li>
+      </ul></div>
+      <div class="card"><span class="tag no">Ne rentre pas dans le coût</span><ul class="clean">
+        <li>La TVA collectée : elle appartient à l'État, vous la reversez</li>
+        <li>Les dépenses de la maison ou de la famille payées avec la caisse</li>
+        <li>Le remboursement du capital d'un prêt (seuls les intérêts sont une charge)</li>
+        <li>Le prix total d'un équipement acheté une fois : seule sa part d'usure par mois compte</li>
+        <li>Le stock encore en rayon : seul ce qui est vendu compte</li>
+        <li>Le prix du concurrent : il sert à se positionner, pas à calculer son coût</li>
+      </ul></div>
+    </div>
+    <div class="card"><h3>Les 5 erreurs qui font fermer</h3><ul class="clean">
+      <li><strong>Copier le prix du voisin</strong> sans connaître ses propres coûts. Il a peut-être un loyer plus bas ou il perd de l'argent.</li>
+      <li><strong>Mélanger la caisse et la poche.</strong> L'argent qui rentre n'est pas du bénéfice.</li>
+      <li><strong>Brader pour attirer du monde</strong> en dessous du coût de revient. Plus vous vendez, plus vous perdez.</li>
+      <li><strong>Surestimer ses ventes.</strong> Un volume trop optimiste fait paraître le coût plus bas qu'il n'est.</li>
+      <li><strong>Ne jamais revoir ses prix</strong> quand le sucre, le carburant ou le loyer augmentent.</li>
+    </ul></div>
+  </section>
+
+  <p class="foot">Les calculs sont indicatifs. Vos prix enregistrés restent dans ce navigateur, sur cet appareil.</p>
+</div>
+
+<script>
+const PRESETS={
+  revente:{name:"Pagne wax 6 yards",unit:"pièce",
+    direct:[["Prix d'achat fournisseur",1,9000],["Transport depuis Adjamé",1,300],["Sachet / emballage",1,100],["Pertes et invendus (estimation)",1,200]],
+    fixed:[["Loyer de la boutique",50000],["Électricité CIE",8000],["Téléphone et internet",5000],["Patente, TSE, taxes",6000],["Ma rémunération",120000]],
+    volume:120,marge:20,frais:1,arr:500,conc:12500,trap:"<strong>Piège :</strong> ne comptez pas que le prix d'achat. Le transport, l'emballage et les pertes font partie du coût de chaque pièce."},
+  fab:{name:"Jus de bissap 50 cl",unit:"bouteille",
+    direct:[["Fleurs de bissap",1,75],["Sucre",1,60],["Bouteille",1,50],["Menthe, arôme",1,15],["Étiquette",1,10]],
+    fixed:[["Loyer du kiosque",30000],["Électricité CIE (congélateur)",15000],["Eau SODECI",5000],["Transport et livraison",20000],["Aide (1 personne)",50000],["Ma rémunération",100000]],
+    volume:2000,marge:25,frais:1,arr:25,conc:400,trap:"<strong>Piège :</strong> comptez aussi le gaz, les bouteilles cassées et les jus non vendus. Mettez-les en ligne « pertes »."},
+  service:{name:"Tresses (pose complète)",unit:"prestation",
+    direct:[["Mèches",2,1500],["Produits (gel, huile)",1,300],["Mon temps (heures)",3,1000]],
+    fixed:[["Loyer du salon",40000],["Électricité CIE",10000],["Eau SODECI",4000],["Matériel (usure / mois)",8000],["Ma rémunération de base",60000]],
+    volume:80,marge:30,frais:0,arr:500,conc:8000,trap:"<strong>Piège :</strong> votre temps a une valeur. Comptez les heures passées sur chaque prestation, même si vous travaillez seule."}
+};
+const fmt=n=>new Intl.NumberFormat("fr-FR",{maximumFractionDigits:0}).format(Math.round(n||0));
+const F=n=>fmt(n)+" F";
+const $=id=>document.getElementById(id);
+let S;
+function fromPreset(mode){const p=PRESETS[mode];return{mode,name:p.name,unit:p.unit,direct:p.direct.map(d=>({l:d[0],q:d[1],pu:d[2]})),fixed:p.fixed.map(f=>({l:f[0],a:f[1]})),volume:p.volume,marge:p.marge,frais:p.frais,arr:p.arr,conc:p.conc,tva:false}}
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+S=load("pm_draft",null)||fromPreset("fab");
+
+function renderLines(){
+  const dl=$("directLines");dl.innerHTML="";
+  S.direct.forEach((d,i)=>{const r=document.createElement("div");r.className="line";
+    r.innerHTML=`<input class="l" id="dl${i}" type="text" aria-label="Élément" value="${esc(d.l)}"><input class="q" id="dq${i}" type="number" min="0" step="any" aria-label="Quantité" value="${d.q}"><input class="p" id="dp${i}" type="number" min="0" step="any" aria-label="Prix unitaire" value="${d.pu}"><span class="tot" id="dt${i}"></span><button class="x" aria-label="Supprimer">×</button>`;
+    r.querySelector(".l").oninput=e=>{d.l=e.target.value;calc()};
+    r.querySelector(".q").oninput=e=>{d.q=+e.target.value||0;calc()};
+    r.querySelector(".p").oninput=e=>{d.pu=+e.target.value||0;calc()};
+    r.querySelector(".x").onclick=()=>{S.direct.splice(i,1);renderLines();calc()};
+    dl.appendChild(r)});
+  const fl=$("fixedLines");fl.innerHTML="";
+  S.fixed.forEach((f,i)=>{const r=document.createElement("div");r.className="line";
+    r.innerHTML=`<input id="fl${i}" type="text" aria-label="Charge" value="${esc(f.l)}"><input id="fa${i}" type="number" min="0" step="any" aria-label="Montant mensuel" value="${f.a}"><button class="x" aria-label="Supprimer">×</button>`;
+    const [a,b]=r.querySelectorAll("input");a.oninput=e=>{f.l=e.target.value;calc()};b.oninput=e=>{f.a=+e.target.value||0;calc()};
+    r.querySelector(".x").onclick=()=>{S.fixed.splice(i,1);renderLines();calc()};
+    fl.appendChild(r)});
+}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+function syncForm(){
+  document.querySelectorAll(".mode").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===S.mode));
+  $("name").value=S.name;$("unit").value=S.unit;$("volume").value=S.volume;$("marge").value=S.marge;
+  $("frais").value=S.frais;$("arrondi").value=String(S.arr);$("concurrent").value=S.conc||"";$("tva").checked=!!S.tva;
+  $("directTrap").innerHTML=PRESETS[S.mode].trap;
+  renderLines();
+}
+
+function compute(s){
+  const D=s.direct.reduce((t,d)=>t+(+d.q||0)*(+d.pu||0),0);
+  const Fx=s.fixed.reduce((t,f)=>t+(+f.a||0),0);
+  const V=+s.volume>0?+s.volume:0;
+  const FU=V?Fx/V:0, CR=D+FU, m=s.marge/100, f=(+s.frais||0)/100, den=1-m-f;
+  const ok=den>0.05&&CR>0;
+  const raw=ok?CR/den:0, arr=+s.arr;
+  const P=ok?(arr?Math.ceil(raw/arr)*arr:Math.round(raw)):0;
+  const fraisU=P*f, margeU=P-fraisU-CR;
+  const tva=s.tva?P*0.18:0, client=P+tva;
+  const plancher=D/(1-f), equi=CR/(1-f);
+  const contrib=P*(1-f)-D;
+  const seuil=contrib>0?Math.ceil(Fx/contrib):null;
+  const profit=V*contrib-Fx;
+  return{D,Fx,V,FU,CR,P,raw,fraisU,margeU,tva,client,plancher,equi,seuil,profit,ok,f,
+    tMarque:P?margeU/P:0,tMarge:CR?margeU/CR:0,coef:D?P/D:0};
+}
+
+function calc(){
+  const r=compute(S);store("pm_draft",S);
+  S.direct.forEach((d,i)=>{const el=$("dt"+i);if(el)el.textContent=F((+d.q||0)*(+d.pu||0))});
+  $("sD").textContent=F(r.D);$("sF").textContent=F(r.Fx);$("sFU").textContent=r.V?F(r.FU):"indiquez un volume";
+  $("mLab").textContent=S.marge+" %";
+  $("tkName").textContent=(S.name||"Prix conseillé")+(S.unit?" · par "+S.unit:"");
+  if(!r.ok){$("price").innerHTML='–<span>F CFA</span>';$("priceSub").textContent="Renseignez vos coûts, et une marge + frais inférieurs à 95 %.";
+    ["rows","bar","verdict","scale"].forEach(i=>$(i).innerHTML="");$("verdict").className="verdict";return}
+  $("price").innerHTML=fmt(r.client)+'<span>F CFA'+(S.tva?" TTC":"")+'</span>';
+  $("priceSub").textContent=S.tva?`Soit ${F(r.P)} HT + ${F(r.tva)} de TVA`:`Calcul exact : ${F(r.raw)}, arrondi pour faciliter la monnaie`;
+  const parts=[["Coût direct",r.D,"--c-direct"],["Part charges fixes",r.FU,"--c-fixe"],["Frais de paiement",r.fraisU,"--c-frais"],["Votre marge",Math.max(r.margeU,0),"--c-marge"]];
+  if(S.tva)parts.push(["TVA (reversée à l'État)",r.tva,"--c-tva"]);
+  const tot=parts.reduce((t,p)=>t+p[1],0)||1;
+  $("bar").innerHTML=parts.map(p=>`<i style="width:${p[1]/tot*100}%;background:var(${p[2]})" title="${p[0]}"></i>`).join("");
+  $("rows").innerHTML=parts.map(p=>`<div><span><span class="dot" style="background:var(${p[2]})"></span>${p[0]}</span><b>${F(p[1])}</b></div>`).join("")+
+    `<div class="em"><span>Coût de revient</span><b>${F(r.CR)}</b></div><div class="em"><span>Marge réelle sur le prix</span><b>${(r.tMarque*100).toFixed(1).replace(".",",")} %</b></div>`;
+  // verdict
+  let cls,t,msg;const conc=+S.conc||0;
+  if(r.P<r.plancher){cls="v-bad";t="Vous perdez à chaque vente";msg="Le prix ne couvre même pas l'achat ou les matières."}
+  else if(r.P<r.equi){cls="v-bad";t="Vos charges ne sont pas couvertes";msg="Augmentez le prix ou le volume, sinon le loyer et votre salaire ne sont pas payés."}
+  else if(conc){
+    const d=(r.client-conc)/conc, concHT=S.tva?conc/1.18:conc;
+    if(concHT<r.equi){cls="v-info";t="Le concurrent vend sous votre coût de revient";
+      msg=`À ${F(conc)}, vous perdriez ${F(r.equi-concHT)} par ${S.unit||"unité"}. Ne vous alignez pas : réduisez vos coûts, augmentez vos volumes ou mettez en avant ce qui vous distingue (qualité, livraison, accueil).`}
+    else if(d>0.15){cls="v-warn";t=`${Math.round(d*100)} % plus cher que le concurrent`;
+      const mc=(concHT*(1-r.f)-r.CR)/concHT;msg=`Risque de perdre des clients si rien ne justifie l'écart. Au prix du concurrent, votre marge serait de ${(mc*100).toFixed(0)} %. Vous pouvez aussi réduire un coût ou baisser un peu votre marge.`}
+    else if(d<-0.15){cls="v-info";t=`${Math.round(-d*100)} % moins cher que le concurrent`;
+      msg="Vous laissez peut-être de l'argent sur la table. Testez une hausse progressive : vos clients ne partiront pas forcément."}
+    else{cls="v-good";t="Prix bien placé";msg=`Vous couvrez tous vos coûts et vous restez proche du marché (${d>=0?"+":""}${Math.round(d*100)} % vs ${F(conc)}).`}
+  } else {cls="v-good";t="Tous vos coûts sont couverts";msg="Indiquez le prix d'un concurrent pour vérifier que le marché suit."}
+  $("verdict").className="verdict "+cls;$("verdict").innerHTML=`<b>${t}</b><span>${msg}</span>`;
+  // scale
+  const vals=[r.plancher,r.equi,r.client,conc].filter(v=>v>0);
+  const lo=0, hi=Math.max(...vals)*1.15, pos=v=>Math.min(100,Math.max(0,(v-lo)/(hi-lo)*100));
+  const sc=$("scale");sc.style.setProperty("--z1",pos(r.plancher)+"%");sc.style.setProperty("--z2",pos(r.equi)+"%");
+  let mk=`<div class="track"></div><div class="mk" style="left:${pos(r.client)}%"><span>Vous ${fmt(r.client)}</span></div>`;
+  if(conc)mk+=`<div class="mk c" style="left:${pos(conc)}%;top:${Math.abs(pos(conc)-pos(r.client))<18?"20px":"0"}"><span>Concurrent ${fmt(conc)}</span></div>`;
+  sc.innerHTML=mk;
+  $("seuil").textContent=r.seuil?fmt(r.seuil)+" "+(S.unit||"u."):"impossible";
+  $("profit").textContent=r.V?F(r.profit):"–";$("profit").style.color=r.profit<0?"var(--bad)":"";
+  $("coef").textContent=r.coef?r.coef.toFixed(2).replace(".",","):"–";
+  $("tmarge").textContent=(r.tMarge*100).toFixed(1).replace(".",",")+" %";
+}
+
+function summary(){const r=compute(S);
+  return `💰 ${S.name}${S.unit?" ("+S.unit+")":""}\nPrix de vente : ${F(r.client)}${S.tva?" TTC":""}\n— Coût direct : ${F(r.D)}\n— Part charges fixes : ${F(r.FU)}\n— Coût de revient : ${F(r.CR)}\n— Marge : ${F(r.margeU)} (${(r.tMarque*100).toFixed(0)} % du prix)\nVentes minimum : ${r.seuil?fmt(r.seuil):"–"} / mois\nCalculé avec Prix Malin`}
+function toast(m){$("toast").textContent=m;clearTimeout(toast.t);toast.t=setTimeout(()=>$("toast").textContent="",2600)}
+
+// events
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{S=fromPreset(b.dataset.mode);syncForm();calc()});
+$("name").oninput=e=>{S.name=e.target.value;calc()};$("unit").oninput=e=>{S.unit=e.target.value;calc()};
+$("volume").oninput=e=>{S.volume=+e.target.value||0;calc()};$("marge").oninput=e=>{S.marge=+e.target.value;calc()};
+$("frais").oninput=e=>{S.frais=+e.target.value||0;calc()};$("arrondi").onchange=e=>{S.arr=+e.target.value;calc()};
+$("concurrent").oninput=e=>{S.conc=+e.target.value||0;calc()};$("tva").onchange=e=>{S.tva=e.target.checked;calc()};
+$("addDirect").onclick=()=>{S.direct.push({l:"",q:1,pu:0});renderLines();calc();$("dl"+(S.direct.length-1)).focus()};
+$("addFixed").onclick=()=>{S.fixed.push({l:"",a:0});renderLines();calc();$("fl"+(S.fixed.length-1)).focus()};
+$("copy").onclick=()=>{const t=summary();const done=()=>toast("Résumé copié, prêt à coller dans WhatsApp.");
+  try{navigator.clipboard.writeText(t).then(done,()=>fallback(t))}catch(e){fallback(t)}};
+function fallback(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Résumé copié.")}catch(e){toast("Copie impossible ici.")}ta.remove()}
+$("save").onclick=()=>{const list=load("pm_list",[]);const r=compute(S);const i=list.findIndex(x=>x.s.name===S.name);
+  const item={s:JSON.parse(JSON.stringify(S)),p:r.client,cr:r.CR,m:r.tMarque,d:new Date().toLocaleDateString("fr-FR")};
+  if(i>=0)list[i]=item;else list.unshift(item);store("pm_list",list);toast(i>=0?"Prix mis à jour dans Mes prix.":"Enregistré dans Mes prix.")};
+
+function renderList(){const list=load("pm_list",[]),el=$("list");
+  if(!list.length){el.innerHTML='<div class="empty"><h3 style="margin-bottom:6px">Aucun prix enregistré</h3>Calculez un prix puis touchez « Enregistrer ce prix ». Vous retrouverez ici tous vos produits et services.</div>';return}
+  el.innerHTML="";list.forEach((it,i)=>{const d=document.createElement("div");d.className="item";
+    d.innerHTML=`<div><h3>${esc(it.s.name)}</h3><p>Coût de revient ${F(it.cr)} · marge ${(it.m*100).toFixed(0)} % · ${it.d}</p></div><div class="p">${F(it.p)}</div>
+    <div class="acts"><button class="btn ghost" data-a="open">Ouvrir et modifier</button><button class="btn ghost" data-a="del">Supprimer</button></div>`;
+    d.querySelector('[data-a=open]').onclick=()=>{S=JSON.parse(JSON.stringify(it.s));syncForm();calc();show("calc")};
+    const del=d.querySelector('[data-a=del]');del.onclick=()=>{if(del.dataset.c){list.splice(i,1);store("pm_list",list);renderList()}else{del.dataset.c=1;del.textContent="Confirmer la suppression";del.style.color="var(--bad)"}};
+    el.appendChild(d)})}
+function show(v){["calc","list","learn"].forEach(k=>{$("v-"+k).hidden=k!==v;$("t-"+k).setAttribute("aria-selected",k===v)});if(v==="list")renderList();
+  try{history.replaceState(null,"",v==="calc"?location.pathname:"#"+v)}catch(e){}}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
+syncForm();calc();
+const h=location.hash.slice(1);if(h==="list"||h==="learn")show(h);
+</script>
+
+</body></html>
