@@ -1,0 +1,51 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+Prix Malin is a selling-price advisor for small merchants in Côte d'Ivoire (F CFA, French UI). It is built as a **system** (public app, API, back-office), not a single app. Only the calculation engine exists so far; the app, back-office and infra directories are empty placeholders. Docs and UI copy are in French; code identifiers are in English.
+
+## Commands
+
+The pnpm workspace root is `src/`, not the repository root. Run pnpm from there.
+
+```bash
+cd src && pnpm install
+cd src && pnpm test                # all packages
+cd src && pnpm typecheck
+cd src/clients/domain && pnpm test:coverage     # 100% threshold on statements/branches/functions/lines
+cd src/clients/domain && pnpm vitest run tests/pricing.test.ts            # one file
+cd src/clients/domain && pnpm vitest run -t "mode TTC"                    # one test by name
+```
+
+No lint or build step exists yet. Node 22+, pnpm 10.
+
+## Architecture
+
+**Specs drive code (SDD + TDD).** `docs/` is the source of truth, and `docs/03-regles-metier.md` is the executable spec of the engine: rule IDs `RG-xx` and reference test vectors. A rule change means updating that file and the tests in the same change; write the failing test first and cite the `RG-xx`. Requirement IDs (`EXG-xx`, `NFR-xx`, `BO-xx`, `SYS-xx`) are defined in `docs/02`, `docs/10`, `docs/09`. Architectural decisions live in `docs/adr/`; add an ADR for any hard-to-reverse choice. Open questions are tracked in `docs/08-questions-ouvertes.md`.
+
+**Engine (`src/clients/domain`)** is a pure TypeScript library: no dependencies, no UI, network, storage, clock or randomness. A test (`tests/purity.test.ts`) fails if `src/` imports anything outside `./`. Do not add dependencies to it.
+
+How the engine fits together (spans several files):
+- `ratio.ts` does exact arithmetic on `bigint` fractions (ADR-0002). All money maths stays in `Ratio`; conversion to `number` happens only when building the result (`toNumber`). Inputs are converted with at most 6 decimals.
+- `context.ts` validates input and builds the shared exact `Context` (direct cost, fixed cost per unit, full cost, fee/VAT rates). `buildBreakdown` produces every output field from an HT price. Both `computePrice` (`pricing.ts`) and `analyzePrice` / `compareWithCompetitor` (`analysis.ts`) go through it, so a new indicator is added once there.
+- Functions never throw on bad input; they return `{ ok: false, reason }` with a `PricingError`.
+
+Domain rules that are easy to get wrong:
+- Margin is a share of the **selling price** (RG-04), not of cost. Payment fees are computed on the **HT price** (decision Q-07).
+- Rounding is always **upward**, never below the raw price: to the chosen step when enabled, to the next franc when disabled. In TTC mode the **TTC** price is rounded and HT is derived (RG-06); the HT/TTC switch also sets the base of the competitor price and of a user-entered price.
+- VAT is optional, off by default, single rate (18%); it is never a cost nor part of the margin. Costs are entered as paid.
+- Limits: margin 0-70, fees 0-20, volume an integer ≥ 1.
+
+**Planned system** (ADR-0001, 0003, 0008, docs/09):
+- The app works fully offline and the server only enriches it (content, config), never blocks it.
+- Prices and costs stay on the device; the engine is client-side only, the server does not recompute prices.
+- Stack: React + Vite + Capacitor for the app (`src/clients/app`), AdonisJS + PostgreSQL for API and back-office (`src/admin`). Build order: app alone first (content embedded as versioned data with a schema), then API + back-office B0 (content/config), then public SEO site, then B1-B3. Keep lot-1 code ready for that: storage behind an interface, content as schema-versioned data, rights checks through a single always-allowed entry point.
+
+## Working agreements
+
+- Keep the repository root minimal (`docs/`, `src/`, `.gitignore`, `README.md`, `CLAUDE.md`). Tooling files belong in `src/`.
+- Do not create new top-level or `src/` directories without asking. The owner defined `admin`, `clients`, `infra`; shared code that clients use lives in `clients/`.
+- On Windows, a shell whose working directory is inside a folder blocks moving that folder; run `mv` from the repository root.
+- Do not reuse any code from the owner's employer projects; this is a separate personal project (open question Q-21 in docs/08).

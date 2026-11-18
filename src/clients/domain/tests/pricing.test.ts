@@ -190,16 +190,8 @@ describe("computePrice — erreurs explicites (RG-02, RG-08, RG-12)", () => {
     expect(r.directCost).toBe(600);
   });
 
-  it("signale un seuil impossible quand la contribution est nulle ou négative", () => {
-    const r = ok({
-      ...bissap,
-      directLines: [{ quantity: 1, unitPrice: 1000 }],
-      fixedMonthly: [1],
-      marginPct: 0,
-      feePct: 20,
-      rounding: { enabled: false, step: 25 },
-    });
-    // prix = (1000 + 1/2000) / 0,8 ≈ 1250,0006 → 1251 ; contribution positive
+  it("le seuil existe toujours en mode conseil (contribution positive)", () => {
+    const r = ok({ ...bissap, marginPct: 0, feePct: 20, rounding: { enabled: false, step: 25 } });
     expect(r.breakEvenUnits).not.toBeNull();
   });
 

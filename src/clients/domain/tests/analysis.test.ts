@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { analyzePrice, compareWithCompetitor } from "../src/analysis";
+import { analyzePrice, compareWithCompetitor as compareRaw } from "../src/analysis";
 import { computePrice } from "../src/pricing";
-import type { PriceBreakdown } from "../src/types";
+import type { AnalysisInput, CompetitorComparison, PriceBreakdown } from "../src/types";
 import { bissap } from "./fixtures";
+
+/** Déballe le résultat : les cas d'erreur sont testés séparément. */
+function compareWithCompetitor(
+  input: AnalysisInput,
+  data: PriceBreakdown,
+  competitorPrice: number,
+): CompetitorComparison {
+  const r = compareRaw(input, data, competitorPrice);
+  if (!r.ok) throw new Error(`Échec inattendu : ${r.reason}`);
+  return r.data;
+}
 
 function advised(): PriceBreakdown {
   const r = computePrice(bissap);
@@ -14,6 +25,8 @@ describe("analyzePrice — mode « tester mon prix » (RG-09)", () => {
   it("perte à chaque vente sous le plancher", () => {
     const r = analyzePrice(bissap, 200);
     expect(r).toMatchObject({ ok: true, verdict: "LOSS_PER_SALE" });
+    // Sous le plancher, aucun volume ne couvre les charges : seuil impossible.
+    if (r.ok) expect(r.data.breakEvenUnits).toBeNull();
   });
 
   it("charges non couvertes entre plancher et équilibre", () => {
@@ -107,9 +120,25 @@ describe("compareWithCompetitor (RG-10)", () => {
     expect(compareWithCompetitor(bissap, data, 500).kind).toBe("ALIGNED");
   });
 
-  it("les bornes ±15 % sont incluses dans « bien placé »", () => {
-    expect(compareWithCompetitor(bissap, data, 450 / 1.15).kind).toBe("ALIGNED");
-    expect(compareWithCompetitor(bissap, data, 450 / 0.85).kind).toBe("ALIGNED");
+  it("les bornes ±15 % exactes sont incluses dans « bien placé »", () => {
+    const at460 = analyzePrice(bissap, 460);
+    const at425 = analyzePrice(bissap, 425);
+    if (!at460.ok || !at425.ok) throw new Error("inattendu");
+    // 460 contre 400 : écart exactement +15 %
+    expect(compareWithCompetitor(bissap, at460.data, 400).kind).toBe("ALIGNED");
+    expect(compareWithCompetitor(bissap, at460.data, 399).kind).toBe("PRICIER");
+    // 425 contre 500 : écart exactement −15 %
+    expect(compareWithCompetitor(bissap, at425.data, 500).kind).toBe("ALIGNED");
+    expect(compareWithCompetitor(bissap, at425.data, 501).kind).toBe("CHEAPER");
+  });
+
+  it("refuse un prix de concurrent nul, négatif ou non numérique", () => {
+    for (const bad of [0, -5, Number.NaN]) {
+      expect(compareRaw(bissap, data, bad)).toEqual({
+        ok: false,
+        reason: "INVALID_INPUT",
+      });
+    }
   });
 
   it("en mode TTC, le concurrent est exprimé en TTC (même base)", () => {
