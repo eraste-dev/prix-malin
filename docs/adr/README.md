@@ -27,6 +27,7 @@ Chaque décision structurante est tracée ici : **contexte, options, choix, cons
 | 0009 | Hébergement et exploitation | À venir |
 | [0010](0010-bibliotheque-ui-shadcn.md) | Bibliothèque UI : shadcn/ui (Tailwind + Radix) | Proposée |
 | [0011](0011-bibliotheque-animation-gsap.md) | Bibliothèque d'animation : GSAP | Proposée |
+| [0012](0012-etat-et-stockage-local.md) | État de l'app et stockage local : zustand, zod, stockage derrière une interface | Proposée |
 
 ## Modèle
 

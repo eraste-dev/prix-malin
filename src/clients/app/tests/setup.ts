@@ -1,6 +1,21 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
+import { STORAGE_KEYS } from "../src/lib/storage";
+import { ONBOARDING_VERSION } from "../src/lib/stores";
+
+/**
+ * Chaque test repart d'une app « déjà lancée une fois » (sans onboarding), sur l'écran Calculer, sans données.
+ * Les tests qui portent sur le premier lancement ou l'accueil vident ou changent ce point de départ.
+ */
+beforeEach(() => {
+  localStorage.clear();
+  localStorage.setItem(
+    STORAGE_KEYS.settings,
+    JSON.stringify({ state: { onboardingSeen: ONBOARDING_VERSION, tipsSeen: [], lastActivity: null }, version: 1 }),
+  );
+  window.location.hash = "#/calculer";
+});
 
 /*
  * jsdom n'a pas de mise en page : `offsetParent` y vaut toujours null. Pour mesurer une transformation, GSAP

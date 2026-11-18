@@ -6,6 +6,8 @@ export interface Activity {
   readonly id: ActivityId;
   readonly label: string;
   readonly example: string;
+  /** Unité de vente proposée par défaut (EXG-02). */
+  readonly unit: string;
   readonly marginPct: number;
   readonly feePct: number;
   /** Pas de l'arrondi supérieur, en F (RG-06). */
@@ -17,6 +19,7 @@ export const ACTIVITIES: readonly Activity[] = [
     id: "resale",
     label: "Achat-revente",
     example: "J'achète pour revendre",
+    unit: "pièce",
     marginPct: 20,
     feePct: 1,
     roundingStep: 500,
@@ -25,6 +28,7 @@ export const ACTIVITIES: readonly Activity[] = [
     id: "making",
     label: "Je fabrique",
     example: "Je prépare ce que je vends",
+    unit: "unité",
     marginPct: 25,
     feePct: 1,
     roundingStep: 25,
@@ -33,6 +37,7 @@ export const ACTIVITIES: readonly Activity[] = [
     id: "service",
     label: "Prestation",
     example: "Je vends mon temps ou un service",
+    unit: "prestation",
     marginPct: 30,
     feePct: 0,
     roundingStep: 500,

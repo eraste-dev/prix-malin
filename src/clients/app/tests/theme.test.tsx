@@ -91,7 +91,7 @@ describe("Thème — cartes de l'onglet Réglages", () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(toggle());
-    await user.click(screen.getByRole("button", { name: "Réglages" }));
+    await user.click(screen.getByRole("link", { name: "Réglages" }));
     expect(screen.getByRole("radio", { name: "Sombre" })).toBeChecked();
 
     await user.click(screen.getByRole("radio", { name: "Système" }));

@@ -153,18 +153,20 @@ describe("Chorégraphie : chaque élément s'anime séparément, dans un ordre c
     expect(increasing(order.map(delayOf))).toBe(true);
   });
 
-  it("navigation basse : chaque onglet apparaît à son tour", () => {
+  it("navigation basse : les onglets apparaissent de gauche à droite (trois rangs pour cinq onglets)", () => {
     render(<App />);
-    const tabs = ["Calculer", "Réglages"].map((name) =>
-      delayOf(screen.getByRole("button", { name }).closest("li")),
+    const tabs = ["Accueil", "Calculer", "Mes prix", "Comprendre", "Réglages"].map((name) =>
+      delayOf(screen.getByRole("link", { name }).closest("li")),
     );
-    expect(increasing(tabs)).toBe(true);
+    // Les rangs sont plafonnés à trois (docs/16) : les derniers onglets partagent le dernier rang.
+    expect(tabs.every((delay, index) => index === 0 || delay >= tabs[index - 1]!)).toBe(true);
+    expect(tabs[0]).toBeLessThan(tabs.at(-1)!);
   });
 
   it("réglages : titre puis chaque carte de thème, une à une", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(screen.getByRole("button", { name: "Réglages" }));
+    await user.click(screen.getByRole("link", { name: "Réglages" }));
     const order = [
       screen.getByRole("heading", { name: "Thème" }),
       ...["Système", "Clair", "Sombre"].map((name) => screen.getByRole("radio", { name }).closest("label")),
