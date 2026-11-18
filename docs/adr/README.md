@@ -25,6 +25,7 @@ Chaque décision structurante est tracée ici : **contexte, options, choix, cons
 | [0007](0007-securite-backoffice.md) | Sécurité du back-office | Proposée |
 | [0008](0008-choix-de-la-stack.md) | Choix de la stack (app, API, back-office) | **Acceptée sous réserve de POC** |
 | 0009 | Hébergement et exploitation | À venir |
+| [0010](0010-bibliotheque-ui-shadcn.md) | Bibliothèque UI : shadcn/ui (Tailwind + Radix) | Proposée |
 
 ## Modèle
 

@@ -32,6 +32,8 @@ Application qui aide les petits commerçants, artisans et prestataires à fixer 
 | 14 | [Onboarding](14-onboarding.md) | Premier lancement : cartes, exemple guidé, aides contextuelles |
 | 15 | [Écrans](15-ecrans.md) | E00 à E14 : contenu, données, actions, états, critères |
 | 16 | [Responsive et mouvement](16-responsive-et-mouvement.md) | Mobile / tablette / PC, animations et transitions coordonnées |
+| — | [ui-ux/DESIGN.md](ui-ux/DESIGN.md) | **Référence de l'interface** : jetons (couleurs, typo, formes, mouvement) et règles, format Google DESIGN.md |
+| 17 | [Leçons apprises](17-lecons-apprises.md) | Règles de travail et erreurs à ne pas répéter, **à lire à chaque session** |
 | — | [adr/](adr/README.md) | Décisions d'architecture justifiées (ADR) |
 
 ## Décisions déjà prises (2026-11-18)

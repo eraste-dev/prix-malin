@@ -45,6 +45,8 @@ Domain rules that are easy to get wrong:
 
 ## Working agreements
 
+- **Read `docs/17-lecons-apprises.md` at the start of every session**, and add a line (`L-xx`) in the same session whenever the owner corrects a mistake or a workaround is found. **Before any UI change, read `docs/ui-ux/DESIGN.md` (tokens + do/don't) and update it first, then `styles.css`.** Key rules: UI uses shadcn/ui (never hand-written components), the images in `docs/ui-ux/` inspire style not content, verify the real rendering before saying it works.
+
 - Keep the repository root minimal (`docs/`, `src/`, `.gitignore`, `README.md`, `CLAUDE.md`). Tooling files belong in `src/`.
 - Do not create new top-level or `src/` directories without asking. The owner defined `admin`, `clients`, `infra`; shared code that clients use lives in `clients/`.
 - On Windows, a shell whose working directory is inside a folder blocks moving that folder; run `mv` from the repository root.
