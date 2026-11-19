@@ -114,6 +114,9 @@ export function listDelay(index: number): number {
   return Math.min(index, LIST.maxRank) * LIST.stagger;
 }
 
+/** Comprendre, en secondes : le chemin du prix se trace segment par segment, les étapes apparaissent l'une après l'autre. */
+export const GUIDE = { lineDuration: 0.4, stepStagger: 0.12, stepDuration: 0.3, cardSlidePx: 24 } as const;
+
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**
