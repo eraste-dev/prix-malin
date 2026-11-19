@@ -30,6 +30,12 @@ Object.defineProperty(HTMLElement.prototype, "offsetParent", {
   },
 });
 
+// jsdom n'a pas la capture du pointeur, que sonner utilise au toucher d'un message.
+for (const method of ["setPointerCapture", "releasePointerCapture"] as const) {
+  if (typeof Element.prototype[method] !== "function") Element.prototype[method] = () => undefined;
+}
+if (typeof Element.prototype.hasPointerCapture !== "function") Element.prototype.hasPointerCapture = () => false;
+
 // jsdom n'a pas ResizeObserver, que Radix (tooltip, popper) utilise pour se positionner.
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {
