@@ -36,6 +36,9 @@ for (const method of ["setPointerCapture", "releasePointerCapture"] as const) {
 }
 if (typeof Element.prototype.hasPointerCapture !== "function") Element.prototype.hasPointerCapture = () => false;
 
+// jsdom n'a pas `scrollIntoView`, que la visite guidée (driver.js) appelle pour amener l'élément à l'écran.
+if (typeof Element.prototype.scrollIntoView !== "function") Element.prototype.scrollIntoView = () => undefined;
+
 // jsdom n'a pas ResizeObserver, que Radix (tooltip, popper) utilise pour se positionner.
 if (typeof globalThis.ResizeObserver === "undefined") {
   globalThis.ResizeObserver = class {

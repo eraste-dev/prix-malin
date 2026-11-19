@@ -150,32 +150,7 @@ describe("exemple guidé", () => {
     expect(screen.getByTestId("price")).toHaveTextContent("450");
   });
 
-  it("guide en quatre bulles passables, puis propose « Faire le mien »", async () => {
-    const user = userEvent.setup();
-    openExample(user);
-    const coach = screen.getByRole("region", { name: /visite de l'exemple/i });
-
-    expect(coach).toHaveTextContent(/voici le prix à viser : 450 F/i);
-    await user.click(within(coach).getByRole("button", { name: "Suivant" }));
-    expect(coach).toHaveTextContent(/d'où vient ce prix/i);
-    await user.click(within(coach).getByRole("button", { name: "Suivant" }));
-    expect(coach).toHaveTextContent(/changez la marge/i);
-    await user.click(within(coach).getByRole("button", { name: "Suivant" }));
-    expect(coach).toHaveTextContent(/gardez vos prix/i);
-    expect(within(coach).getByRole("button", { name: "Faire le mien" })).toBeInTheDocument();
-  });
-
-  it("« Faire le mien » ouvre Q1 avec les champs vides", async () => {
-    const user = userEvent.setup();
-    openExample(user);
-
-    const coach = screen.getByRole("region", { name: /visite de l'exemple/i });
-    for (let i = 0; i < 3; i += 1) await user.click(within(coach).getByRole("button", { name: "Suivant" }));
-    await user.click(within(coach).getByRole("button", { name: "Faire le mien" }));
-
-    expect(window.location.hash).toBe("#/calculer");
-    expect(screen.getByLabelText(/ce que ça vous coûte/i)).toHaveValue("");
-  });
+  // La visite elle-même (halo, bulles, « Faire le mien ») est testée dans Tour.test.tsx.
 
   it("l'exemple est essayable : changer la marge change le prix", async () => {
     const user = userEvent.setup();

@@ -107,7 +107,7 @@ export function CompositionGauge({ parts }: CompositionGaugeProps) {
   });
 
   return (
-    <Reveal beat={RESULT_BEAT.composition} data-testid="composition-block" className="grid gap-6">
+    <Reveal beat={RESULT_BEAT.composition} data-testid="composition-block" data-tour="composition" className="grid gap-6">
       <div
         data-testid="composition"
         role="img"

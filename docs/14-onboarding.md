@@ -49,21 +49,24 @@ Textes provisoires : la voix et le ton seront fixés dans le guide de rédaction
 |---|---|---|
 | **Commencer** | Unique | Ouvre Q1 ; l'onboarding est marqué vu |
 
-*Décision du 2026-11-19 : « Voir un exemple d'abord » est retiré de la carte 3 (un seul bouton).* L'exemple guidé reste construit et joignable à l'adresse `#/exemple`, mais **n'a plus de point d'entrée dans l'app** : à replacer (Accueil, lien « Voir un exemple » de Q2) ou à supprimer.
+*Décision du 2026-11-19 : « Voir un exemple d'abord » est retiré de la carte 3 (un seul bouton).* L'exemple guidé est devenu une visite guidée, accessible depuis Réglages et l'Accueil (voir « Exemple guidé »).
 
 ## Exemple guidé
 
-Pour qui hésite : un calcul **déjà rempli** (bissap, issu du prototype), avec des bulles d'aide qui montrent où regarder.
+Pour qui hésite : un calcul **déjà rempli** (bissap, issu du prototype) et une **vraie visite guidée** : un fond atténué autour de l'élément montré, une bulle ancrée à cet élément, « 2 sur 6 », Retour et Suivant, défilement automatique ([ADR-0015](adr/0015-visite-guidee-driverjs.md)). Une carte « Visite guidée » propose de la lancer ; elle se relance à volonté.
 
-| Étape | Mise en évidence | Bulle |
+| Étape | Élément mis en évidence | Bulle |
 |---|---|---|
-| 1 | Prix conseillé | « Voici le prix à viser : 450 F. » |
-| 2 | Barre de composition | « Voilà d'où vient ce prix : ce que ça vous coûte, vos charges, votre marge. » |
-| 3 | Curseur de marge | « Changez la marge, regardez le prix bouger. » (le curseur est essayable) |
-| 4 | Bouton Enregistrer | « Gardez vos prix pour les retrouver. » |
-| Fin | Bouton **Faire le mien** | Ouvre Q1 avec les champs **vides** |
+| 1 | Les trois questions (déjà remplies) | « Trois nombres suffisent : ce que ça vous coûte, vos charges du mois, vos ventes. » |
+| 2 | Prix conseillé | « Voici le prix à viser : 450 F. » |
+| 3 | Demi-cercle de composition | « Voilà d'où vient ce prix : ce que ça vous coûte, vos charges, votre marge. » |
+| 4 | Pastilles de marge | « Changez la marge, regardez le prix bouger. » (**essayable** pendant la visite) |
+| 5 | Bouton Enregistrer | « Gardez vos prix pour les retrouver. » |
+| Fin | Bulle centrée, sans élément | « À vous. » : bouton **Faire le mien**, qui ouvre Q1 avec les champs **vides** |
 
-Règles : l'exemple est **clairement étiqueté** « Exemple » (bandeau permanent), n'est **jamais** enregistré dans « Mes prix » sans action, et se quitte en un tap. Les bulles sont passables et ne bloquent pas l'écran.
+Règles : l'exemple est **clairement étiqueté** « Exemple » (bandeau permanent), n'est **jamais** enregistré dans « Mes prix » sans action, et se quitte en un tap. La visite se ferme à tout moment (croix, Échap) sans rien perdre, et sous « réduire les animations » le halo ne bouge pas (MOV-01).
+
+**Où la trouver** (l'onboarding ne la propose plus, décision du 2026-11-19) : Réglages → « Présentation et aides » → « Visite guidée », et, tant qu'aucun prix n'est enregistré, un lien « Voir la visite guidée » sur l'Accueil.
 
 ## Premier prix : accompagnements contextuels
 

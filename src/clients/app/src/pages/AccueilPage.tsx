@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { HomeStall } from "../components/HomeStall";
 import { PageHeader } from "../components/PageHeader";
@@ -71,9 +71,17 @@ export function AccueilPage() {
       <Reveal as="section" aria-label="Mes derniers prix" beat={3} className="grid gap-4">
         <h2 className="text-xl font-light">Mes derniers prix</h2>
         {latest.length === 0 ? (
-          <p className="rounded-3xl bg-card p-6 text-muted-foreground">
-            Aucun prix enregistré pour l'instant. Calculez le premier : trois nombres suffisent.
-          </p>
+          <div className="grid justify-items-start gap-2 rounded-3xl bg-card p-6">
+            <p className="text-muted-foreground">
+              Aucun prix enregistré pour l'instant. Calculez le premier : trois nombres suffisent.
+            </p>
+            <Link
+              to="/exemple"
+              className="inline-flex min-h-11 items-center rounded-md underline underline-offset-4 outline-offset-4 focus-visible:outline-3 focus-visible:outline-ring"
+            >
+              Voir la visite guidée
+            </Link>
+          </div>
         ) : (
           <PriceCarousel prices={latest} onOpen={openPrice} />
         )}

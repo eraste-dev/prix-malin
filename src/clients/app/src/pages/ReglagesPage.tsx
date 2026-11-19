@@ -1,4 +1,4 @@
-import { BookOpen, Download, Lock, RotateCcw, Store, Upload } from "lucide-react";
+import { BookOpen, Compass, Download, Lock, RotateCcw, Store, Upload } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -105,6 +105,7 @@ export function ReglagesPage() {
 
         <Block title="Présentation et aides">
           <SettingsGroup>
+            <SettingsLink to="/exemple" icon={Compass} label="Visite guidée" detail="Un exemple pas à pas, avec le bissap" />
             <SettingsLink to="/bienvenue" icon={BookOpen} label="Revoir la présentation" />
             <SettingsButton
               onClick={resetTips}

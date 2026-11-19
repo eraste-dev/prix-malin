@@ -336,6 +336,7 @@ export function CalculerPage() {
                       <Button
                         type="button"
                         onClick={() => setSaveOpen(true)}
+                        data-tour="save"
                         className="h-12 rounded-full px-6 text-base"
                       >
                         Enregistrer

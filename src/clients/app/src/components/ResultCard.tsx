@@ -40,6 +40,7 @@ export function ResultCard({ result, calcul }: ResultCardProps) {
           as="p"
           beat={RESULT_BEAT.price}
           data-testid="price"
+          data-tour="price"
           className="text-6xl font-light whitespace-nowrap tabular-nums"
         >
           {formatAmount(data.customerPrice)}{" "}

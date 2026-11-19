@@ -30,6 +30,7 @@ Chaque décision structurante est tracée ici : **contexte, options, choix, cons
 | [0012](0012-etat-et-stockage-local.md) | État de l'app et stockage local : zustand, zod, stockage derrière une interface | Proposée |
 | [0013](0013-hors-ligne-pwa.md) | Hors ligne : PWA avec vite-plugin-pwa | Proposée |
 | [0014](0014-routage-par-hash.md) | Routage : react-router, adresses par hash | Proposée |
+| [0015](0015-visite-guidee-driverjs.md) | Visite guidée : driver.js (version épinglée) | Proposée |
 
 ## Modèle
 

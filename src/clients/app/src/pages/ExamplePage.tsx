@@ -1,4 +1,6 @@
-import { useState } from "react";
+import type { Driver } from "driver.js";
+import { Compass } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { formatAmount } from "../lib/amount";
@@ -7,6 +9,7 @@ import { computeOutcome } from "../lib/outcome";
 import { memoryStorage } from "../lib/storage";
 import { StoreProvider, useStores } from "../lib/storeContext";
 import type { AppStores } from "../lib/stores";
+import { startTour } from "../lib/tour";
 import { CalculerPage } from "./CalculerPage";
 
 /** Le bissap de docs/03 : 450 F. Il vit dans un stockage en mémoire, jamais dans les données de l'utilisateur. */
@@ -26,8 +29,9 @@ function examplePrice(): number {
 }
 
 /**
- * Exemple guidé (docs/14) : un calcul déjà rempli, essayable, **séparé** des données de l'utilisateur. Il a ses
- * propres stores en mémoire : rien de ce qu'on y fait n'arrive dans « Mes prix » ni dans le brouillon (ONB-04).
+ * Exemple guidé (docs/14) : un calcul déjà rempli, essayable, **séparé** des données de l'utilisateur, et une vraie
+ * visite guidée (ADR-0015). Il a ses propres stores en mémoire : rien de ce qu'on y fait n'arrive dans « Mes prix »
+ * ni dans le brouillon (ONB-04).
  */
 export function ExamplePage() {
   const real = useStores();
@@ -38,22 +42,37 @@ export function ExamplePage() {
   );
 }
 
-const COACH_STEPS = [
-  () => `Voici le prix à viser : ${formatAmount(examplePrice())} F.`,
-  () => "Voilà d'où vient ce prix : ce que ça vous coûte, vos charges, votre marge.",
-  () => "Changez la marge, regardez le prix bouger.",
-  () => "Gardez vos prix pour les retrouver.",
-] as const;
-
 function ExampleFrame({ real }: { readonly real: AppStores }) {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const last = step === COACH_STEPS.length - 1;
-  const text = COACH_STEPS[step]?.() ?? "";
+  const [closed, setClosed] = useState(false);
+  const tour = useRef<Driver | null>(null);
+  const mounted = useRef(true);
+
+  // En quittant l'écran, la visite est coupée sans rien déclencher.
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      tour.current?.destroy();
+    };
+  }, []);
 
   function makeMine(): void {
     real.calc.getState().reset();
     void navigate("/calculer");
+  }
+
+  function begin(): void {
+    tour.current?.destroy();
+    setClosed(false);
+    tour.current = startTour(examplePrice(), {
+      onDone: () => {
+        if (mounted.current) makeMine();
+      },
+      onClose: () => {
+        if (mounted.current) setClosed(true);
+      },
+    });
   }
 
   return (
@@ -73,16 +92,31 @@ function ExampleFrame({ real }: { readonly real: AppStores }) {
         </Button>
       </div>
 
-      <section aria-label="Visite de l'exemple" className="grid gap-4 rounded-3xl bg-card p-6">
-        <p className="text-xl font-light">{text}</p>
+      <section aria-label="Visite guidée" className="grid gap-4 rounded-3xl bg-card p-6">
+        <p className="flex items-start gap-3 text-xl font-light">
+          <Compass className="mt-1 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          {closed
+            ? "Vous pouvez relancer la visite quand vous voulez, ou faire votre propre calcul."
+            : `Prenez une minute pour voir comment on arrive à ${formatAmount(examplePrice())} F.`}
+        </p>
         <div className="flex flex-wrap gap-2">
-          {last ? (
-            <Button type="button" onClick={makeMine} className="h-12 rounded-full px-6 text-base">
-              Faire le mien
-            </Button>
+          {closed ? (
+            <>
+              <Button type="button" onClick={begin} className="h-12 rounded-full px-6 text-base">
+                Relancer la visite
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={makeMine}
+                className="h-12 rounded-full bg-muted px-6 text-base hover:bg-muted/70"
+              >
+                Faire le mien
+              </Button>
+            </>
           ) : (
-            <Button type="button" onClick={() => setStep(step + 1)} className="h-12 rounded-full px-6 text-base">
-              Suivant
+            <Button type="button" onClick={begin} className="h-12 rounded-full px-6 text-base">
+              Commencer la visite
             </Button>
           )}
         </div>
