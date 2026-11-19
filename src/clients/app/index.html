@@ -7,9 +7,41 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#F6EFE7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1B1512" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="Trouvez le bon prix de vente de vos produits, même sans internet." />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/icon.svg" sizes="any" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <title>Prix Malin</title>
+    <!-- Écran de lancement (E00) : le logo seul, jamais d'écran blanc. Retiré dès que l'app est affichée. -->
+    <style>
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background: #f6efe7;
+      }
+      @media (prefers-color-scheme: dark) {
+        #splash {
+          background: #1b1512;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <svg width="96" height="96" viewBox="0 0 512 512" role="presentation">
+        <rect width="512" height="512" rx="112" fill="#B84A2E" />
+        <path
+          fill="#FFFFFF"
+          d="M160 150H300q12 0 20 8l78 86q12 12 0 24l-78 86q-8 8-20 8H160q-30 0-30-30V180q0-30 30-30Z"
+        />
+        <circle cx="190" cy="256" r="24" fill="#B84A2E" />
+      </svg>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

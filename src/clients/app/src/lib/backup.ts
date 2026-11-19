@@ -8,12 +8,16 @@ import { savedPriceSchema, type AppStores, type SavedPrice } from "./stores";
 
 export const BACKUP_APP = "prix-malin";
 export const BACKUP_SCHEMA = 1;
+/** Un fichier plus gros n'est pas une sauvegarde de cette app : on ne le lit pas (protège le téléphone). */
+export const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
+/** Plus de prix qu'aucun commerçant n'en gardera ; borne aussi la place prise dans le stockage. */
+export const MAX_BACKUP_PRICES = 1000;
 
 const envelopeSchema = z.object({
   app: z.literal(BACKUP_APP),
   schema: z.number().int(),
-  exportedAt: z.string(),
-  prices: z.array(z.unknown()),
+  exportedAt: z.string().max(40),
+  prices: z.array(z.unknown()).max(MAX_BACKUP_PRICES),
 });
 
 export function backupFileName(now: Date = new Date()): string {
@@ -24,13 +28,14 @@ export function buildBackup(prices: readonly SavedPrice[], now: Date = new Date(
   return JSON.stringify({ app: BACKUP_APP, schema: BACKUP_SCHEMA, exportedAt: now.toISOString(), prices }, null, 2);
 }
 
-export type BackupFailure = "UNREADABLE" | "NOT_A_BACKUP" | "NEWER_VERSION";
+export type BackupFailure = "UNREADABLE" | "NOT_A_BACKUP" | "NEWER_VERSION" | "TOO_LARGE";
 
 export type BackupRead =
   | { readonly ok: true; readonly prices: readonly SavedPrice[]; readonly rejected: number }
   | { readonly ok: false; readonly reason: BackupFailure };
 
 export function readBackup(text: string): BackupRead {
+  if (text.length > MAX_BACKUP_BYTES) return { ok: false, reason: "TOO_LARGE" };
   let json: unknown;
   try {
     json = JSON.parse(text);

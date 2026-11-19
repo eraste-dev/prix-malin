@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { backupFileName, buildBackup, importBackup, readBackup } from "../src/lib/backup";
+import {
+  MAX_BACKUP_BYTES,
+  MAX_BACKUP_PRICES,
+  backupFileName,
+  buildBackup,
+  importBackup,
+  readBackup,
+} from "../src/lib/backup";
 import { memoryStorage } from "../src/lib/storage";
 import { createAppStores } from "../src/lib/stores";
 import { bissap } from "./helpers";
@@ -46,6 +53,28 @@ describe("readBackup", () => {
     ["une version plus récente", JSON.stringify({ app: "prix-malin", schema: 99, exportedAt: "x", prices: [] }), "NEWER_VERSION"],
   ])("refuse %s", (_name, text, reason) => {
     expect(readBackup(text)).toEqual({ ok: false, reason });
+  });
+
+  it("refuse un fichier démesuré avant même de l'analyser (protège le téléphone)", () => {
+    expect(readBackup("a".repeat(MAX_BACKUP_BYTES + 1))).toEqual({ ok: false, reason: "TOO_LARGE" });
+  });
+
+  it("refuse une sauvegarde qui annonce un nombre déraisonnable de prix", () => {
+    const text = JSON.stringify({
+      app: "prix-malin",
+      schema: 1,
+      exportedAt: "x",
+      prices: Array.from({ length: MAX_BACKUP_PRICES + 1 }, () => ({})),
+    });
+    expect(readBackup(text)).toEqual({ ok: false, reason: "NOT_A_BACKUP" });
+  });
+
+  it("ignore les champs inconnus et ne laisse passer aucune clé dangereuse (__proto__)", () => {
+    const valid = storesWith(["Bon"]).prices.getState().prices[0];
+    const text = `{"app":"prix-malin","schema":1,"exportedAt":"x","__proto__":{"polluted":true},"prices":[${JSON.stringify(valid)}]}`;
+    const result = readBackup(text);
+    expect(result.ok).toBe(true);
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
 
   it("écarte les prix abîmés et garde les autres", () => {

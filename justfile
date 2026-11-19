@@ -35,9 +35,19 @@ test:
 test-watch:
     {{pnpm}} --filter {{app}} test:watch
 
-# Couverture du moteur (seuil 100 %)
+# Couverture : moteur (seuil 100 %) puis app (seuils 90 / 85 / 90 / 90)
 coverage:
     {{pnpm}} --filter {{domain}} test:coverage
+    pnpm --dir src/clients/app test:coverage
+
+# Genere les icones de l'app depuis public/icon.svg
+icons:
+    pnpm --dir src/clients/app icons
+
+# Previsualise le build de production (service worker actif : test du hors ligne)
+preview-offline:
+    pnpm --dir src/clients/app build
+    pnpm --dir src/clients/app preview
 
 # Verifie les types de tous les paquets
 typecheck:

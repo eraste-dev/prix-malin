@@ -8,7 +8,7 @@ import { Reveal } from "../components/Reveal";
 import { ThemeCards } from "../components/ThemeCards";
 import { WipeDialog } from "../components/WipeDialog";
 import { CONTENT_VERSION } from "../content/comprendre";
-import { backupFileName, buildBackup, importBackup, type ImportReport } from "../lib/backup";
+import { MAX_BACKUP_BYTES, backupFileName, buildBackup, importBackup, type ImportReport } from "../lib/backup";
 import { usePrices, useStores } from "../lib/storeContext";
 import { wipeAll } from "../lib/stores";
 import { useThemeContext } from "../lib/themeContext";
@@ -17,9 +17,9 @@ const plural = (count: number, one: string, many: string): string => `${count} $
 
 function describeImport(report: ImportReport): string {
   if (!report.ok) {
-    return report.reason === "NEWER_VERSION"
-      ? "Cette sauvegarde vient d'une version plus récente de l'application."
-      : "Ce fichier n'est pas une sauvegarde Prix Malin.";
+    if (report.reason === "NEWER_VERSION") return "Cette sauvegarde vient d'une version plus récente de l'application.";
+    if (report.reason === "TOO_LARGE") return "Ce fichier est trop volumineux pour être une sauvegarde Prix Malin.";
+    return "Ce fichier n'est pas une sauvegarde Prix Malin.";
   }
   const parts = [`${plural(report.added, "prix importé", "prix importés")}`];
   if (report.skipped > 0) parts.push(plural(report.skipped, "déjà présent", "déjà présents"));
@@ -51,7 +51,11 @@ export function ReglagesPage() {
     const input = event.target;
     const file = input.files?.[0];
     if (file === undefined) return;
-    const report = importBackup(stores, await file.text());
+    // On refuse un fichier démesuré avant même de le lire.
+    const report: ImportReport =
+      file.size > MAX_BACKUP_BYTES
+        ? { ok: false, reason: "TOO_LARGE" }
+        : importBackup(stores, await file.text());
     toast(describeImport(report));
     input.value = "";
   }

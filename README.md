@@ -2,7 +2,7 @@
 
 Application qui aide les petits commerçants, artisans et prestataires à fixer le **bon prix de vente** : couvrir tous leurs coûts, garder une vraie marge, rester cohérent face à la concurrence.
 
-> **Statut : cadrage terminé, démarrage du lot 1.** Le moteur de calcul est écrit et testé ; l'application, le back-office et l'infrastructure ne sont pas encore commencés.
+> **Statut : lot 1 fonctionnel.** L'app publique (web, installable, hors ligne) est écrite et testée : calcul, test du prix actuel, enregistrement, partage, apprentissage. Le back-office et l'infrastructure ne sont pas commencés. Voir [docs/19-etat-lot-1.md](docs/19-etat-lot-1.md).
 
 ## Pourquoi
 
@@ -13,7 +13,7 @@ Beaucoup de petits commerces fixent leurs prix en copiant le voisin et oublient 
 | Composant | Dossier | Rôle | État |
 |---|---|---|---|
 | Moteur de calcul | [src/clients/domain](src/clients/domain/README.md) | Règles de prix, pures et testées | Fait (P1) |
-| App publique | [src/clients](src/clients/README.md) | Web (PWA), Android, iOS | À venir (lot 1) |
+| App publique | [src/clients/app](src/clients/README.md) | Web (PWA) ; Android et iOS via Capacitor ([docs/18](docs/18-emballage-natif.md)) | **Fait** (lot 1) ; emballage natif à essayer sur appareil |
 | Back-office | [src/admin](src/admin/README.md) | Contenu, statistiques, comptes, support | À venir (lot 2 et suivants) |
 | Infrastructure | [src/infra](src/infra/README.md) | Déploiement, CI/CD, environnements | À venir |
 
@@ -29,6 +29,8 @@ pnpm install
 pnpm test          # tous les tests
 pnpm typecheck     # vérification des types
 ```
+
+Ou, depuis la racine, avec [just](https://just.systems) (`winget install Casey.Just`) : `just dev` lance l'app, `just check` vérifie les types et les tests, `just coverage` mesure la couverture, `just` liste tout.
 
 Les commandes pnpm se lancent depuis `src/`, qui est la racine du monorepo.
 

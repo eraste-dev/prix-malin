@@ -11,3 +11,6 @@ createRoot(container).render(
     <App />
   </StrictMode>,
 );
+
+// L'écran de lancement de index.html disparaît une fois la première image de l'app dessinée.
+requestAnimationFrame(() => document.getElementById("splash")?.remove());

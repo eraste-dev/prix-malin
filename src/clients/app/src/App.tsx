@@ -2,6 +2,7 @@ import { HashRouter, Navigate, Outlet, Route, Routes } from "react-router";
 import { Toaster } from "sonner";
 import { BottomNav } from "./components/BottomNav";
 import { IntegrityBanners } from "./components/IntegrityBanners";
+import { PwaStatus } from "./components/PwaStatus";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { AccueilPage } from "./pages/AccueilPage";
 import { ActivitePage } from "./pages/ActivitePage";
@@ -20,11 +21,20 @@ function Layout() {
   const { effective } = useThemeContext();
   return (
     <>
-      <main className="mx-auto grid max-w-xl gap-12 px-5 pt-6 pb-32">
+      {/* Lien d'évitement : un bouton, car une ancre « #contenu » changerait l'adresse du routeur (ADR-0014). */}
+      <button
+        type="button"
+        onClick={() => document.getElementById("contenu")?.focus()}
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-foreground focus:px-5 focus:py-3 focus:text-background"
+      >
+        Aller au contenu
+      </button>
+      <main id="contenu" tabIndex={-1} className="mx-auto grid max-w-xl gap-12 px-5 pt-6 pb-32 outline-none">
         <IntegrityBanners />
         <Outlet />
       </main>
       <BottomNav />
+      <PwaStatus />
       {/* Messages d'état discrets (« Prix enregistré »), 16 px comme le reste (NFR-07). */}
       <Toaster position="top-center" theme={effective} toastOptions={{ style: { fontSize: "1rem" } }} />
     </>

@@ -53,6 +53,17 @@ describe("Navigation basse", () => {
     expect(screen.getByTestId("today")).toHaveTextContent(/\d{1,2}/);
   });
 
+  it("propose un lien d'évitement : première étape du clavier, il donne le focus au contenu", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: /aller au contenu/i })).toHaveFocus();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
   it("une adresse inconnue retombe sur une page valide", () => {
     window.location.hash = "#/n-importe-quoi";
     render(<App />);

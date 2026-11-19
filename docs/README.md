@@ -1,6 +1,6 @@
 # Prix Malin — Documentation produit
 
-> Statut : **brouillon v0.1** · 2026-11-18 · Phase : cadrage (aucun code)
+> Statut : **lot 1 fonctionnel** · 2026-11-19 · Voir [19 — État du lot 1](19-etat-lot-1.md)
 
 Application qui aide les petits commerçants, artisans et prestataires à fixer le **bon prix de vente** : couvrir tous leurs coûts, garder une vraie marge, rester cohérent face à la concurrence.
 
@@ -33,6 +33,8 @@ Application qui aide les petits commerçants, artisans et prestataires à fixer 
 | 15 | [Écrans](15-ecrans.md) | E00 à E14 : contenu, données, actions, états, critères |
 | 16 | [Responsive et mouvement](16-responsive-et-mouvement.md) | Mobile / tablette / PC, animations et transitions coordonnées |
 | — | [ui-ux/DESIGN.md](ui-ux/DESIGN.md) | **Référence de l'interface** : jetons (couleurs, typo, formes, mouvement) et règles, format Google DESIGN.md |
+| 18 | [Emballage natif et hors ligne](18-emballage-natif.md) | Capacitor, PWA, P3/P4/P5/P8 : ce qui est prêt, ce qui reste à faire sur appareil |
+| 19 | [État du lot 1](19-etat-lot-1.md) | Écrans faits, choix par défaut à valider, qualité, reste à faire |
 | 17 | [Leçons apprises](17-lecons-apprises.md) | Règles de travail et erreurs à ne pas répéter, **à lire à chaque session** |
 | — | [adr/](adr/README.md) | Décisions d'architecture justifiées (ADR) |
 

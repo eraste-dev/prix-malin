@@ -126,6 +126,20 @@ describe("sauvegarde (EXG-44)", () => {
     expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.prices) as string).state.prices).toHaveLength(1);
   });
 
+  it("refuse un fichier trop volumineux sans même le lire", async () => {
+    const user = userEvent.setup();
+    seedPrices(["Existant"]);
+    render(<App />);
+    const huge = new File(["{}"], "énorme.json", { type: "application/json" });
+    Object.defineProperty(huge, "size", { value: 50 * 1024 * 1024 });
+    const read = vi.spyOn(huge, "text");
+
+    await user.upload(screen.getByLabelText(/importer un fichier/i), huge);
+
+    expect((await screen.findAllByText(/trop volumineux/i)).length).toBeGreaterThan(0);
+    expect(read).not.toHaveBeenCalled();
+  });
+
   it("signale les prix déjà présents", async () => {
     const user = userEvent.setup();
     seedPrices(["Déjà là"]);
