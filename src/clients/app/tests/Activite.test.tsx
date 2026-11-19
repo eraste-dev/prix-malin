@@ -84,10 +84,9 @@ describe("page Mon activité", () => {
     await user.click(screen.getByRole("button", { name: "Loyer" }));
     await user.type(screen.getByLabelText(/montant : loyer/i), "100000");
 
-    const table = screen.getByRole("table", { name: /répartition/i });
-    const rows = within(table).getAllByRole("row");
-    expect(rows.some((r) => /Bissap/.test(r.textContent ?? "") && /25\s?000/.test(r.textContent ?? ""))).toBe(true);
-    expect(rows.some((r) => /Gingembre/.test(r.textContent ?? "") && /75\s?000/.test(r.textContent ?? ""))).toBe(true);
+    const rows = within(screen.getByRole("list", { name: /répartition/i })).getAllByRole("listitem");
+    expect(rows.some((r) => /Bissap/.test(r.textContent ?? "") && /25\D000/.test(r.textContent ?? ""))).toBe(true);
+    expect(rows.some((r) => /Gingembre/.test(r.textContent ?? "") && /75\D000/.test(r.textContent ?? ""))).toBe(true);
   });
 });
 

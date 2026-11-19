@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChargeLines } from "../components/ChargeLines";
 import { PageHeader } from "../components/PageHeader";
-import { formatAmount } from "../lib/amount";
+import { ShareList, type ProductShare } from "../components/ShareList";
 import { sharedShare } from "../lib/shared";
 import { useActivityCharges, usePrices, useStores } from "../lib/storeContext";
 import { sharedTotalOf } from "../lib/stores";
@@ -19,13 +19,25 @@ export function ActivitePage() {
     price.calcul.volume === null ? [] : [{ id: price.id, nom: price.nom, volume: price.calcul.volume }],
   );
 
+  const shares: readonly ProductShare[] = withVolume.map((product) => {
+    const others = withVolume.filter((other) => other.id !== product.id).map((other) => other.volume);
+    const amount = sharedShare(total, product.volume, others) ?? 0;
+    return {
+      id: product.id,
+      name: product.nom === "" ? "Sans nom" : product.nom,
+      volume: product.volume,
+      amount,
+      percent: total > 0 ? Math.round((amount / total) * 1000) / 10 : 0,
+    };
+  });
+
   return (
     <>
       <PageHeader>Mon activité</PageHeader>
 
       <p className="text-lg">
-        Saisissez vos charges du mois une seule fois : chaque produit en portera une part, proportionnelle à ses
-        ventes. Dans « Calculer », choisissez « Mes charges partagées ».
+        Saisissez vos charges du mois une seule fois : chaque produit en porte une part, selon ses ventes. Dans
+        Calculer, touchez « Utiliser mes charges partagées ».
       </p>
 
       <ChargeLines
@@ -41,40 +53,18 @@ export function ActivitePage() {
         onRemove={actions.removeCharge}
       />
 
-      {total > 0 && withVolume.length > 0 && (
+      {total > 0 && (
         <section aria-label="Répartition" className="grid gap-3">
           <h2 className="text-xl font-light">Répartition</h2>
-          <table aria-label="Répartition des charges par produit" className="w-full text-left">
-            <thead className="text-muted-foreground">
-              <tr>
-                <th scope="col" className="py-2 font-normal">
-                  Produit
-                </th>
-                <th scope="col" className="py-2 text-right font-normal">
-                  Ventes par mois
-                </th>
-                <th scope="col" className="py-2 text-right font-normal">
-                  Part des charges
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {withVolume.map((product) => {
-                const others = withVolume.filter((other) => other.id !== product.id).map((other) => other.volume);
-                return (
-                  <tr key={product.id} className="border-t border-border">
-                    <th scope="row" className="py-3 font-semibold">
-                      {product.nom === "" ? "Sans nom" : product.nom}
-                    </th>
-                    <td className="py-3 text-right tabular-nums">{formatAmount(product.volume)}</td>
-                    <td className="py-3 text-right tabular-nums">
-                      {formatAmount(sharedShare(total, product.volume, others) ?? 0)} F
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {withVolume.length > 0 ? (
+            <ShareList shares={shares} />
+          ) : (
+            <p className="rounded-3xl bg-card p-5 text-muted-foreground">
+              {prices.length === 0
+                ? "Votre premier produit portera toutes ces charges."
+                : "Indiquez les ventes par mois de vos produits pour voir la part de chacun."}
+            </p>
+          )}
         </section>
       )}
     </>

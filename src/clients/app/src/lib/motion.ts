@@ -120,6 +120,9 @@ export const GUIDE = { lineDuration: 0.4, stepStagger: 0.12, stepDuration: 0.3, 
 /** Réglages, en secondes : les sections montent une à une ; la carte de thème choisie fait un petit rebond. */
 export const SETTINGS = { risePx: 20, duration: 0.4, stagger: 0.07, popFrom: 0.92, popDuration: 0.35 } as const;
 
+/** Mon activité, en secondes : les barres de répartition se remplissent une à une (4 rangs au plus), puis glissent. */
+export const SHARE = { duration: 0.5, stagger: 0.12, maxRank: 3 } as const;
+
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**
