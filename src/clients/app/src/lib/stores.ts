@@ -295,6 +295,8 @@ export interface PricesState {
   readonly duplicate: (id: string) => string | null;
   readonly remove: (id: string) => RemovedPrice | null;
   readonly restore: (removed: RemovedPrice) => void;
+  /** Ajoute les prix absents (import d'une sauvegarde) ; ceux dont l'identifiant existe déjà sont ignorés. */
+  readonly merge: (items: readonly SavedPrice[]) => { readonly added: number; readonly skipped: number };
   readonly clear: () => void;
   readonly dismissIntegrity: () => void;
 }
@@ -353,6 +355,12 @@ export function createPricesStore(adapter: StorageAdapter): StoreApi<PricesState
             const at = clamp(index, 0, state.prices.length);
             return { prices: [...state.prices.slice(0, at), item, ...state.prices.slice(at)] };
           }),
+        merge: (items) => {
+          const known = new Set(get().prices.map((price) => price.id));
+          const fresh = items.filter((item, index) => !known.has(item.id) && items.findIndex((x) => x.id === item.id) === index);
+          if (fresh.length > 0) set((state) => ({ prices: [...state.prices, ...fresh] }));
+          return { added: fresh.length, skipped: items.length - fresh.length };
+        },
         clear: () => set({ prices: [] }),
         dismissIntegrity: () => set({ integrity: { lost: 0 } }),
       }),

@@ -3,6 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { DEFAULT_VAT_RATE_PCT } from "@prix-malin/domain";
 import { useCalc, useStores } from "../lib/storeContext";
 import { AmountField } from "./AmountField";
+import { HelpButton } from "./HelpButton";
 import { PillChoice, type PillOption } from "./PillChoice";
 import { Reveal } from "./Reveal";
 import { Segmented } from "./Segmented";
@@ -40,17 +41,23 @@ export function AdjustPanel() {
   return (
     <Reveal beat={0} className="grid gap-8">
       <div className="grid gap-4">
-        <p className="font-semibold">
-          Ce que vous gardez sur chaque vente :{" "}
-          <span data-testid="margin-current" className="tabular-nums">
-            {calcul.marge} %
-          </span>
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-semibold">
+            Ce que vous gardez sur chaque vente :{" "}
+            <span data-testid="margin-current" className="tabular-nums">
+              {calcul.marge} %
+            </span>
+          </p>
+          <HelpButton term="marge" />
+        </div>
         <PillChoice label="Marge" options={MARGIN_OPTIONS} value={calcul.marge} onChange={actions.setMarge} />
       </div>
 
       <div className="grid gap-4">
-        <p className="font-semibold">Comment vos clients paient</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-semibold">Comment vos clients paient</p>
+          <HelpButton term="frais" />
+        </div>
         <PillChoice label="Frais de paiement" options={FEE_OPTIONS} value={calcul.frais} onChange={actions.setFrais} />
       </div>
 

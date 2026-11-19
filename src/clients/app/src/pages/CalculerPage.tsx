@@ -9,6 +9,7 @@ import { AmountField } from "../components/AmountField";
 import { ChangeActivityDialog } from "../components/ChangeActivityDialog";
 import { ChargeLines } from "../components/ChargeLines";
 import { CostLines } from "../components/CostLines";
+import { HelpButton } from "../components/HelpButton";
 import { PageHeader } from "../components/PageHeader";
 import { RemunerationReminder } from "../components/RemunerationReminder";
 import { ResultCard } from "../components/ResultCard";
@@ -120,20 +121,26 @@ export function CalculerPage() {
   }
 
   const costModeControl = (
-    <Segmented
-      label="Saisie du coût"
-      value={coutDirect.mode}
-      options={INPUT_MODES}
-      onChange={(mode: InputMode) => actions.setCostMode(mode)}
-    />
+    <div className="flex flex-wrap items-center gap-2">
+      <HelpButton term="cout-direct" />
+      <Segmented
+        label="Saisie du coût"
+        value={coutDirect.mode}
+        options={INPUT_MODES}
+        onChange={(mode: InputMode) => actions.setCostMode(mode)}
+      />
+    </div>
   );
   const chargesModeControl = (
-    <Segmented
-      label="Saisie des charges"
-      value={chargesFixes.mode}
-      options={INPUT_MODES}
-      onChange={(mode: InputMode) => actions.setChargesMode(mode)}
-    />
+    <div className="flex flex-wrap items-center gap-2">
+      <HelpButton term="charges-fixes" />
+      <Segmented
+        label="Saisie des charges"
+        value={chargesFixes.mode}
+        options={INPUT_MODES}
+        onChange={(mode: InputMode) => actions.setChargesMode(mode)}
+      />
+    </div>
   );
 
   return (
@@ -246,6 +253,7 @@ export function CalculerPage() {
                     hint="Combien de ventes faites-vous en un mois ? Soyez réaliste."
                     example="2 000"
                     beat={BEAT.field3}
+                    action={<HelpButton term="volume" />}
                     value={calcul.volume}
                     onChange={actions.setVolume}
                   />

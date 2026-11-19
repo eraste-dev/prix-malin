@@ -29,7 +29,11 @@ describe("Carte résultat : fond blanc, couleur réservée à la marge", () => {
     expect(card.className).not.toContain("bg-muted");
     expect(card.className).not.toContain("bg-secondary");
     expect(screen.getByTestId("price").className).not.toContain("text-positive");
-    expect(card.querySelectorAll('[class*="opacity-"]')).toHaveLength(0);
+    // Pas d'opacité posée à la main sur un texte (les variantes comme `disabled:opacity-50` de shadcn ne comptent pas).
+    const plainOpacity = Array.from(card.querySelectorAll("[class]")).filter((element) =>
+      (element.getAttribute("class") ?? "").split(/\s+/).some((token) => /^opacity-\d+$/.test(token)),
+    );
+    expect(plainOpacity).toHaveLength(0);
   });
 
   it("arcs : encre, atténué, encre à 50 %, et « positive » pour la marge seulement", async () => {

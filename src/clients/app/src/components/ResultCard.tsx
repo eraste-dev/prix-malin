@@ -6,6 +6,7 @@ import { RESULT_BEAT } from "../lib/motion";
 import type { OutcomeResult } from "../lib/outcome";
 import { describeCompetitor } from "../lib/verdict";
 import { CompositionGauge } from "./CompositionGauge";
+import { HelpButton } from "./HelpButton";
 import { Reveal } from "./Reveal";
 import { Verdict } from "./Verdict";
 import { WhyPrice } from "./WhyPrice";
@@ -58,11 +59,17 @@ export function ResultCard({ result, calcul }: ResultCardProps) {
         )}
         <dl className="grid gap-1 [&_dd]:tabular-nums [&_dt]:text-muted-foreground">
           <Reveal beat={RESULT_BEAT.firstRow} className="flex justify-between gap-4">
-            <dt>Coût de revient</dt>
+            <dt className="flex items-center gap-1">
+              Coût de revient
+              <HelpButton term="cout-de-revient" />
+            </dt>
             <dd data-testid="full-cost">{formatAmount(data.fullCost)} F</dd>
           </Reveal>
           <Reveal beat={RESULT_BEAT.secondRow} className="flex justify-between gap-4">
-            <dt>Ventes minimum par mois</dt>
+            <dt className="flex items-center gap-1">
+              Ventes minimum par mois
+              <HelpButton term="seuil" />
+            </dt>
             <dd data-testid="break-even">{formatBreakEven(data.breakEvenUnits)}</dd>
           </Reveal>
         </dl>

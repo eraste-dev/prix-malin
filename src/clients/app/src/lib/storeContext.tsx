@@ -15,11 +15,17 @@ interface StoreProviderProps {
   readonly children: ReactNode;
   /** Le stockage à utiliser ; par défaut `localStorage` (tests : un stockage en mémoire). */
   readonly storage?: StorageAdapter | undefined;
+  /** Prépare les stores à leur création (ex. l'exemple guidé y charge son calcul). */
+  readonly seed?: ((stores: AppStores) => void) | undefined;
 }
 
 /** Crée les stores une seule fois, au premier rendu (lecture validée du stockage, ADR-0012). */
-export function StoreProvider({ children, storage }: StoreProviderProps) {
-  const [stores] = useState(() => createAppStores(storage ?? browserStorage()));
+export function StoreProvider({ children, storage, seed }: StoreProviderProps) {
+  const [stores] = useState(() => {
+    const created = createAppStores(storage ?? browserStorage());
+    seed?.(created);
+    return created;
+  });
   return <StoresContext value={stores}>{children}</StoresContext>;
 }
 
