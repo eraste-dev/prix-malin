@@ -113,11 +113,27 @@ describe("brouillon : actions", () => {
     expect(c.id).not.toBe(oldId);
   });
 
-  it("charge un calcul enregistré dans le brouillon", () => {
-    const { calc } = make();
+  it("charge un calcul enregistré dans le brouillon et se souvient duquel (« Mettre à jour »)", () => {
+    const { calc, storage } = make();
     const saved = { ...newCalcul("service"), nom: "Coiffure" };
-    calc.getState().load(saved);
+    calc.getState().load(saved, "prix-42");
     expect(calc.getState().calcul.nom).toBe("Coiffure");
+    expect(calc.getState().linkedPriceId).toBe("prix-42");
+    expect(createAppStores(storage).calc.getState().linkedPriceId).toBe("prix-42");
+    calc.getState().reset();
+    expect(calc.getState().linkedPriceId).toBeNull();
+  });
+
+  it("coche puis décoche une charge courante par sa pastille ; le rappel de salaire se ferme une fois", () => {
+    const { calc } = make();
+    const id = calc.getState().toggleChargePreset("Loyer");
+    expect(id).not.toBeNull();
+    expect(calc.getState().calcul.chargesFixes.lignes.map((line) => line.label)).toEqual(["Loyer"]);
+    expect(calc.getState().toggleChargePreset("Loyer")).toBeNull();
+    expect(calc.getState().calcul.chargesFixes.lignes).toEqual([]);
+    expect(calc.getState().calcul.remunerationRappelVu).toBe(false);
+    calc.getState().dismissRemunerationReminder();
+    expect(calc.getState().calcul.remunerationRappelVu).toBe(true);
   });
 });
 
@@ -145,11 +161,11 @@ describe("brouillon : persistance et lecture validée (NFR-09, E14)", () => {
     expect(calc.getState().integrity.draftLost).toBe(true);
   });
 
-  it("n'écrit que le calcul : pas les actions ni l'état d'intégrité", () => {
+  it("n'écrit que les données : pas les actions ni l'état d'intégrité", () => {
     const { calc, storage } = make();
     calc.getState().setCostTotal(1);
     const raw = JSON.parse(storage.getItem(STORAGE_KEYS.draft) ?? "{}");
-    expect(Object.keys(raw.state)).toEqual(["calcul"]);
+    expect(Object.keys(raw.state).sort()).toEqual(["calcul", "linkedPriceId"]);
     expect(raw.version).toBe(1);
   });
 

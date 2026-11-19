@@ -72,6 +72,8 @@ const nowIso = (): string => new Date().toISOString();
 
 export interface CalcState {
   readonly calcul: Calcul;
+  /** Le prix enregistré dont ce brouillon est la version en cours d'édition (« Mettre à jour »), ou `null`. */
+  readonly linkedPriceId: string | null;
   /** Le brouillon stocké était abîmé : on est reparti d'un calcul vierge. */
   readonly integrity: { readonly draftLost: boolean };
   readonly setType: (type: ActivityId) => void;
@@ -87,6 +89,9 @@ export interface CalcState {
   readonly addChargeLine: (line?: Partial<Omit<ChargeLineItem, "id">>) => string;
   readonly updateChargeLine: (id: string, patch: Partial<Omit<ChargeLineItem, "id">>) => void;
   readonly removeChargeLine: (id: string) => void;
+  /** Coche ou décoche une charge courante (pastille) ; renvoie l'identifiant de la ligne ajoutée, ou `null`. */
+  readonly toggleChargePreset: (label: string) => string | null;
+  readonly dismissRemunerationReminder: () => void;
   readonly setVolume: (volume: number | null) => void;
   readonly setMarge: (marge: number) => void;
   readonly setFrais: (frais: number) => void;
@@ -96,8 +101,14 @@ export interface CalcState {
   readonly setPrixActuel: (price: number | null) => void;
   readonly setModeResultat: (mode: ResultMode) => void;
   readonly reset: () => void;
-  readonly load: (calcul: Calcul) => void;
+  readonly load: (calcul: Calcul, linkedPriceId?: string | null) => void;
+  readonly linkTo: (priceId: string | null) => void;
   readonly dismissIntegrity: () => void;
+}
+
+interface DraftData {
+  readonly calcul: Calcul;
+  readonly linkedPriceId: string | null;
 }
 
 const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
@@ -107,7 +118,7 @@ const sumLines = <T>(lines: readonly T[], value: (line: T) => number): number | 
 export function createCalcStore(adapter: StorageAdapter): StoreApi<CalcState> {
   const flags: ReadFlags = { unreadable: false };
   return createStore<CalcState>()(
-    persist<CalcState, [], [], { calcul: Calcul }>(
+    persist<CalcState, [], [], DraftData>(
       (set, get) => {
         const edit = (change: (calcul: Calcul) => Calcul): void => {
           set((state) => ({ calcul: { ...change(state.calcul), modifieLe: nowIso() } }));
@@ -115,6 +126,7 @@ export function createCalcStore(adapter: StorageAdapter): StoreApi<CalcState> {
 
         return {
           calcul: newCalcul(),
+          linkedPriceId: null,
           integrity: { draftLost: false },
           setType: (type) => edit((c) => applyType(c, type)),
           setNom: (nom) => edit((c) => ({ ...c, nom: nom.slice(0, 80) })),
@@ -162,7 +174,7 @@ export function createCalcStore(adapter: StorageAdapter): StoreApi<CalcState> {
               if (mode === "detail") {
                 const fromTotal: ChargeLineItem[] =
                   chargesFixes.lignes.length === 0 && chargesFixes.total !== null
-                    ? [{ id: newId(), label: "Total", amount: chargesFixes.total }]
+                    ? [{ id: newId(), label: "Autres charges", amount: chargesFixes.total }]
                     : [...chargesFixes.lignes];
                 return { ...c, chargesFixes: { ...chargesFixes, mode, lignes: fromTotal } };
               }
@@ -190,6 +202,16 @@ export function createCalcStore(adapter: StorageAdapter): StoreApi<CalcState> {
               chargesFixes: { ...c.chargesFixes, lignes: c.chargesFixes.lignes.filter((line) => line.id !== id) },
             })),
 
+          toggleChargePreset: (label) => {
+            const existing = get().calcul.chargesFixes.lignes.find((line) => line.label === label);
+            if (existing !== undefined) {
+              get().removeChargeLine(existing.id);
+              return null;
+            }
+            return get().addChargeLine({ label, amount: 0 });
+          },
+          dismissRemunerationReminder: () => edit((c) => ({ ...c, remunerationRappelVu: true })),
+
           setVolume: (volume) =>
             edit((c) => {
               const whole = volume === null || !Number.isFinite(volume) ? 0 : Math.floor(volume);
@@ -207,25 +229,27 @@ export function createCalcStore(adapter: StorageAdapter): StoreApi<CalcState> {
           setPrixActuel: (prixActuel) => edit((c) => ({ ...c, prixActuel })),
           setModeResultat: (modeResultat) => edit((c) => ({ ...c, modeResultat })),
 
-          reset: () => set({ calcul: newCalcul(get().calcul.type) }),
-          load: (calcul) => set({ calcul }),
+          reset: () => set({ calcul: newCalcul(get().calcul.type), linkedPriceId: null }),
+          load: (calcul, linkedPriceId = null) => set({ calcul, linkedPriceId }),
+          linkTo: (linkedPriceId) => set({ linkedPriceId }),
           dismissIntegrity: () => set({ integrity: { draftLost: false } }),
         };
       },
       {
         name: STORAGE_KEYS.draft,
         version: PERSIST_VERSION,
-        storage: jsonStorage<{ calcul: Calcul }>(adapter, flags),
-        partialize: (state) => ({ calcul: state.calcul }),
-        migrate: (persisted) => persisted as { calcul: Calcul },
+        storage: jsonStorage<DraftData>(adapter, flags),
+        partialize: (state) => ({ calcul: state.calcul, linkedPriceId: state.linkedPriceId }),
+        migrate: (persisted) => persisted as DraftData,
         merge: (persisted, current) => {
           if (persisted === undefined || persisted === null) {
             return flags.unreadable ? { ...current, integrity: { draftLost: true } } : current;
           }
-          const parsed = calculSchema.safeParse((persisted as { calcul?: unknown }).calcul);
-          return parsed.success
-            ? { ...current, calcul: parsed.data }
-            : { ...current, integrity: { draftLost: true } };
+          const stored = persisted as { calcul?: unknown; linkedPriceId?: unknown };
+          const parsed = calculSchema.safeParse(stored.calcul);
+          if (!parsed.success) return { ...current, integrity: { draftLost: true } };
+          const link = typeof stored.linkedPriceId === "string" ? stored.linkedPriceId : null;
+          return { ...current, calcul: parsed.data, linkedPriceId: link };
         },
       },
     ),

@@ -8,6 +8,8 @@ export interface Activity {
   readonly example: string;
   /** Unité de vente proposée par défaut (EXG-02). */
   readonly unit: string;
+  /** Pastilles de suggestion pour le coût direct (docs/15 E03). */
+  readonly costSuggestions: readonly string[];
   readonly marginPct: number;
   readonly feePct: number;
   /** Pas de l'arrondi supérieur, en F (RG-06). */
@@ -20,6 +22,7 @@ export const ACTIVITIES: readonly Activity[] = [
     label: "Achat-revente",
     example: "J'achète pour revendre",
     unit: "pièce",
+    costSuggestions: ["Transport", "Emballage", "Pertes"],
     marginPct: 20,
     feePct: 1,
     roundingStep: 500,
@@ -29,6 +32,7 @@ export const ACTIVITIES: readonly Activity[] = [
     label: "Je fabrique",
     example: "Je prépare ce que je vends",
     unit: "unité",
+    costSuggestions: ["Matières premières", "Emballage", "Transport", "Pertes"],
     marginPct: 25,
     feePct: 1,
     roundingStep: 25,
@@ -38,6 +42,7 @@ export const ACTIVITIES: readonly Activity[] = [
     label: "Prestation",
     example: "Je vends mon temps ou un service",
     unit: "prestation",
+    costSuggestions: ["Déplacement", "Matériel", "Pertes"],
     marginPct: 30,
     feePct: 0,
     roundingStep: 500,

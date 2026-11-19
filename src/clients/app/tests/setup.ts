@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, vi } from "vitest";
 import { STORAGE_KEYS } from "../src/lib/storage";
 import { ONBOARDING_VERSION } from "../src/lib/stores";
@@ -40,6 +41,8 @@ if (typeof globalThis.ResizeObserver === "undefined") {
 
 afterEach(() => {
   cleanup();
+  // L'état des messages (sonner) est global : on le vide pour que les tests restent indépendants.
+  toast.dismiss();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });

@@ -11,13 +11,14 @@ import { Reveal } from "./Reveal";
 interface WhyPriceProps {
   readonly data: PriceBreakdown;
   readonly volume: number;
-  readonly marginPct: number;
+  /** La marge que l'on visait ; `null` quand on teste son propre prix (aucune marge visée). */
+  readonly targetMarginPct: number | null;
   readonly feePct: number;
   readonly roundingStep: number;
 }
 
 /** « Pourquoi ce prix ? » (docs/15 E06, 5) : lignes chiffrées, formule en clair et effet de l'arrondi (RG-04, RG-05, RG-06). */
-export function WhyPrice({ data, volume, marginPct, feePct, roundingStep }: WhyPriceProps) {
+export function WhyPrice({ data, volume, targetMarginPct, feePct, roundingStep }: WhyPriceProps) {
   const [open, setOpen] = useState(false);
   const chevronRef = useRef<SVGSVGElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
@@ -82,7 +83,8 @@ export function WhyPrice({ data, volume, marginPct, feePct, roundingStep }: WhyP
             </p>
             <p>
               Marge : <strong className="tabular-nums">{formatMoney(data.margin)} F</strong>, soit{" "}
-              {formatPercent(data.markupRate * 100)} % du prix pour {formatPercent(marginPct)} % visés.
+              {formatPercent(data.markupRate * 100)} % du prix
+              {targetMarginPct === null ? "." : ` pour ${formatPercent(targetMarginPct)} % visés.`}
             </p>
             <p className="text-muted-foreground">Prix = coût direct + part des charges + frais + marge.</p>
             {rounded && (

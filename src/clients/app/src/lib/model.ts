@@ -39,6 +39,8 @@ export const calculSchema = z.object({
   concurrent: amount.nullable(),
   prixActuel: amount.nullable(),
   modeResultat: z.enum(["conseille", "monPrix"]),
+  /** Le rappel « Avez-vous compté votre salaire ? » a été vu pour ce calcul (une fois par calcul). */
+  remunerationRappelVu: z.boolean(),
   creeLe: z.string().max(40),
   modifieLe: z.string().max(40),
 });
@@ -81,6 +83,7 @@ export function newCalcul(type: ActivityId = DEFAULT_ACTIVITY_ID, options: NewCa
     concurrent: null,
     prixActuel: null,
     modeResultat: "conseille",
+    remunerationRappelVu: false,
     creeLe: now,
     modifieLe: now,
   };
