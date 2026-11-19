@@ -106,6 +106,14 @@ export const HOME = {
 /** Carrousel de conseils de l'accueil : un conseil toutes les 7 s, glissement de 32 px (durées en s). */
 export const TIP = { intervalMs: 7000, slidePx: 32, duration: 0.4 } as const;
 
+/** Mes prix, en secondes : les étiquettes s'accrochent une à une (6 rangs au plus, comme la cascade). */
+export const LIST = { dropPx: 24, tiltDeg: 3, duration: 0.5, stagger: 0.07, maxRank: 5 } as const;
+
+/** Retard d'entrée de la n-ième étiquette : plafonné, pour qu'une longue liste n'attende jamais. */
+export function listDelay(index: number): number {
+  return Math.min(index, LIST.maxRank) * LIST.stagger;
+}
+
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**
