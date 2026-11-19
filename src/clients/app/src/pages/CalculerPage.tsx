@@ -11,6 +11,7 @@ import { ChargeLines } from "../components/ChargeLines";
 import { DisclosureToggle, Expand, FieldHeader } from "../components/Disclosure";
 import { CostLines } from "../components/CostLines";
 import { HelpButton } from "../components/HelpButton";
+import { LockedHint } from "../components/LockedHint";
 import { PageHeader } from "../components/PageHeader";
 import { RemunerationReminder } from "../components/RemunerationReminder";
 import { ResultCard } from "../components/ResultCard";
@@ -166,9 +167,7 @@ export function CalculerPage() {
   const chargesHelp = <HelpButton term="charges-fixes" />;
   return (
     <>
-      <PageHeader>
-        Bonjour, trouvons <span className="font-normal">votre prix</span>
-      </PageHeader>
+      <PageHeader>Calculer un prix</PageHeader>
 
       <div className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-x-3">
         <StepRail titles={STEP_TITLES} statuses={statuses} summaries={summaries} />
@@ -352,15 +351,11 @@ export function CalculerPage() {
                     </div>
                   </>
                 ) : (
-                  <p role="status" className="text-muted-foreground">
-                    {message}
-                  </p>
+                  <LockedHint>{message}</LockedHint>
                 )}
               </>
             ) : (
-              <p role="status" className="text-muted-foreground">
-                {message}
-              </p>
+              <LockedHint>{message}</LockedHint>
             )}
           </Step>
 
@@ -368,7 +363,7 @@ export function CalculerPage() {
             {unlocked ? (
               <AdjustPanel />
             ) : (
-              <p className="text-muted-foreground">Marge et frais de paiement : disponibles avec votre prix.</p>
+              <LockedHint announce={false}>Marge et frais de paiement : disponibles avec votre prix.</LockedHint>
             )}
           </Step>
         </div>

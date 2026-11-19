@@ -123,6 +123,9 @@ export const SETTINGS = { risePx: 20, duration: 0.4, stagger: 0.07, popFrom: 0.9
 /** Mon activité, en secondes : les barres de répartition se remplissent une à une (4 rangs au plus), puis glissent. */
 export const SHARE = { duration: 0.5, stagger: 0.12, maxRank: 3 } as const;
 
+/** Calculer, en secondes : l'étiquette du prix se balance et rebondit quand le prix change ; la tuile choisie rebondit. */
+export const CALC = { bumpFrom: 1.06, bumpDuration: 0.35, popFrom: 0.94, popDuration: 0.3, tagStartAngle: 6, tagSwingDuration: 1 } as const;
+
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**

@@ -47,9 +47,9 @@ describe("Navigation basse", () => {
     expect(await screen.findByLabelText(/ce que ça vous coûte/i)).toBeVisible();
   });
 
-  it("salue sans prénom et donne la date du jour en français", () => {
+  it("nomme l'écran sans prénom et donne la date du jour en français", () => {
     render(<App />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/votre prix/i);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/calculer un prix/i);
     expect(screen.getByTestId("today")).toHaveTextContent(/\d{1,2}/);
   });
 

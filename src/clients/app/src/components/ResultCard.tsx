@@ -7,6 +7,7 @@ import type { OutcomeResult } from "../lib/outcome";
 import { describeCompetitor } from "../lib/verdict";
 import { CompositionGauge } from "./CompositionGauge";
 import { HelpButton } from "./HelpButton";
+import { PriceTag } from "./PriceTag";
 import { Reveal } from "./Reveal";
 import { Verdict } from "./Verdict";
 import { WhyPrice } from "./WhyPrice";
@@ -33,19 +34,21 @@ export function ResultCard({ result, calcul }: ResultCardProps) {
       className="gap-8 rounded-3xl border-0 bg-card p-8 shadow-none"
     >
       <div className="grid gap-4">
-        <Reveal as="p" beat={RESULT_BEAT.caption} className="text-sm text-muted-foreground">
-          {own ? "Votre prix actuel" : "Votre prix conseillé"}
-        </Reveal>
-        <Reveal
-          as="p"
-          beat={RESULT_BEAT.price}
-          data-testid="price"
-          data-tour="price"
-          className="text-6xl font-light whitespace-nowrap tabular-nums"
-        >
-          {formatAmount(data.customerPrice)}{" "}
-          <span className="text-base font-medium text-muted-foreground">F CFA{vat ? ` ${calcul.tva.base}` : ""}</span>
-        </Reveal>
+        <PriceTag amount={data.customerPrice}>
+          <Reveal as="p" beat={RESULT_BEAT.caption} className="text-sm text-muted-foreground">
+            {own ? "Votre prix actuel" : "Votre prix conseillé"}
+          </Reveal>
+          <Reveal
+            as="p"
+            beat={RESULT_BEAT.price}
+            data-testid="price"
+            data-tour="price"
+            className="text-5xl font-light whitespace-nowrap tabular-nums"
+          >
+            {formatAmount(data.customerPrice)}{" "}
+            <span className="text-base font-medium text-muted-foreground">F CFA{vat ? ` ${calcul.tva.base}` : ""}</span>
+          </Reveal>
+        </PriceTag>
         {vat && (
           <p data-testid="price-other" className="text-muted-foreground">
             {calcul.tva.base === "HT"

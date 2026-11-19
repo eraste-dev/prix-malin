@@ -1,6 +1,10 @@
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import { ChefHat, ShoppingBag, Wrench, type LucideIcon } from "lucide-react";
+import { useRef } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ACTIVITIES, type ActivityId } from "../lib/activity";
+import { CALC, motionAllowed } from "../lib/motion";
 
 const ICONS: Readonly<Record<ActivityId, LucideIcon>> = {
   resale: ShoppingBag,
@@ -15,6 +19,27 @@ interface ActivityChoiceProps {
 
 /** Q1 « Que vendez-vous ? » : trois tuiles à icône côte à côte, posées sur le fond (docs/15 E02). */
 export function ActivityChoice({ value, onChange }: ActivityChoiceProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const mounted = useRef(false);
+
+  // La tuile choisie fait un petit rebond (GSAP) ; pas au premier affichage, ni sous « réduire les animations ».
+  useGSAP(
+    () => {
+      if (!mounted.current) {
+        mounted.current = true;
+        return;
+      }
+      const selected = ref.current?.querySelector('[data-state="on"]');
+      if (!motionAllowed() || selected === null || selected === undefined) return;
+      gsap.fromTo(
+        selected,
+        { scale: CALC.popFrom },
+        { scale: 1, duration: CALC.popDuration, ease: "back.out(2)", clearProps: "transform" },
+      );
+    },
+    { dependencies: [value], scope: ref },
+  );
+
   function handleChange(next: string): void {
     // Radix renvoie "" quand on reclique l'option active : on garde le choix.
     const match = ACTIVITIES.find((activity) => activity.id === next);
@@ -22,6 +47,7 @@ export function ActivityChoice({ value, onChange }: ActivityChoiceProps) {
   }
 
   return (
+    <div ref={ref}>
     <ToggleGroup
       type="single"
       aria-label="Que vendez-vous ?"
@@ -46,5 +72,6 @@ export function ActivityChoice({ value, onChange }: ActivityChoiceProps) {
         );
       })}
     </ToggleGroup>
+    </div>
   );
 }

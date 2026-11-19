@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings, useStores } from "../lib/storeContext";
 
@@ -17,14 +17,16 @@ export function Tip({ tipKey, children }: TipProps) {
   return (
     <div role="note" aria-label="Conseil" className="flex items-start gap-3 rounded-2xl bg-muted p-4">
       <Lightbulb className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-      <p className="flex-1">{children}</p>
+      <p className="flex-1 pt-0.5">{children}</p>
       <Button
         type="button"
         variant="ghost"
+        size="icon"
+        aria-label="Compris"
         onClick={() => stores.settings.getState().markTip(tipKey)}
-        className="h-11 shrink-0 rounded-full px-4 text-base"
+        className="-my-2 -mr-2 size-11 shrink-0 rounded-full text-muted-foreground"
       >
-        Compris
+        <X className="size-5" aria-hidden="true" />
       </Button>
     </div>
   );
