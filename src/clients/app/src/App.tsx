@@ -2,7 +2,9 @@ import { HashRouter, Navigate, Outlet, Route, Routes } from "react-router";
 import { Toaster } from "sonner";
 import { BottomNav } from "./components/BottomNav";
 import { IntegrityBanners } from "./components/IntegrityBanners";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { AccueilPage } from "./pages/AccueilPage";
+import { ActivitePage } from "./pages/ActivitePage";
 import { CalculerPage } from "./pages/CalculerPage";
 import { ComprendrePage } from "./pages/ComprendrePage";
 import { ExamplePage } from "./pages/ExamplePage";
@@ -44,6 +46,7 @@ function AppRoutes() {
         <Route path="calculer" element={<CalculerPage />} />
         <Route path="exemple" element={<ExamplePage />} />
         <Route path="prix" element={<MesPrixPage />} />
+        <Route path="activite" element={<ActivitePage />} />
         <Route path="comprendre" element={<ComprendrePage />} />
         <Route path="comprendre/:slug" element={<ComprendrePage />} />
         <Route path="reglages" element={<ReglagesPage />} />
@@ -63,7 +66,9 @@ export function App({ storage }: AppProps) {
     <StoreProvider storage={storage}>
       <ThemeProvider>
         <HashRouter>
-          <AppRoutes />
+          <AppErrorBoundary>
+            <AppRoutes />
+          </AppErrorBoundary>
         </HashRouter>
       </ThemeProvider>
     </StoreProvider>

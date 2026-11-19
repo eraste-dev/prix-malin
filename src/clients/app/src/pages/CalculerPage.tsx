@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,19 +19,29 @@ import { ShareSheet } from "../components/ShareSheet";
 import { Step } from "../components/Step";
 import { StepRail } from "../components/StepRail";
 import { TextField } from "../components/TextField";
-import { formatMoney } from "../lib/amount";
+import { Tip } from "../components/Tip";
+import { formatAmount, formatMoney } from "../lib/amount";
 import { REMUNERATION_LABEL } from "../lib/charges";
 import { chargesTotalOf, directTotalOf, type InputMode, type ResultMode } from "../lib/model";
 import { BEAT } from "../lib/motion";
 import { computeOutcome, type OutcomeResult } from "../lib/outcome";
 import { buildSummary, defaultPriceName } from "../lib/share";
+import { withSharedCharges } from "../lib/shared";
 import { computeStepStatuses, describeSteps, STEP_TITLES } from "../lib/steps";
-import { useCalc, usePrices, useStores } from "../lib/storeContext";
+import { useActivityCharges, useCalc, usePrices, useStores } from "../lib/storeContext";
+import { sharedTotalOf } from "../lib/stores";
 import { useActivity } from "../lib/useActivity";
 
 const INPUT_MODES = [
   { value: "total", label: "Total" },
   { value: "detail", label: "Détail" },
+] as const;
+
+type ChargeSource = "propre" | "activite";
+
+const CHARGE_SOURCES = [
+  { value: "propre", label: "Charges propres" },
+  { value: "activite", label: "Mes charges partagées" },
 ] as const;
 
 const RESULT_MODES = [
@@ -52,14 +62,26 @@ export function CalculerPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const { activity, pending, requestChange, confirmChange, cancelChange } = useActivity();
 
-  const outcome = useMemo(() => computeOutcome(calcul), [calcul]);
+  // Charges partagées (E10) : si elles viennent de l'activité, le moteur reçoit la part de ce produit.
+  const sharedTotal = useActivityCharges((state) => sharedTotalOf(state.charges));
+  const prices = usePrices((state) => state.prices);
+  const otherVolumes = useMemo(
+    () =>
+      prices.flatMap((price) =>
+        price.id === linkedPriceId || price.calcul.volume === null ? [] : [price.calcul.volume],
+      ),
+    [prices, linkedPriceId],
+  );
+  const effective = useMemo(() => withSharedCharges(calcul, sharedTotal, otherVolumes), [calcul, sharedTotal, otherVolumes]);
+
+  const outcome = useMemo(() => computeOutcome(effective), [effective]);
   // Les étapes se débloquent quand un prix est calculable, quel que soit le mode affiché.
   const baseline = useMemo(
-    () => (calcul.modeResultat === "conseille" ? outcome : computeOutcome({ ...calcul, modeResultat: "conseille" })),
-    [calcul, outcome],
+    () => (effective.modeResultat === "conseille" ? outcome : computeOutcome({ ...effective, modeResultat: "conseille" })),
+    [effective, outcome],
   );
-  const cost = directTotalOf(calcul);
-  const fixed = chargesTotalOf(calcul);
+  const cost = directTotalOf(effective);
+  const fixed = chargesTotalOf(effective);
   const result = "data" in outcome ? outcome : null;
   const unlocked = "data" in baseline;
 
@@ -76,7 +98,39 @@ export function CalculerPage() {
 
   const { coutDirect, chargesFixes } = calcul;
   const hasRemuneration = chargesFixes.lignes.some((line) => line.label === REMUNERATION_LABEL);
-  const showReminder = fixed !== null && !calcul.remunerationRappelVu && !hasRemuneration;
+  const showReminder =
+    fixed !== null && !calcul.remunerationRappelVu && !hasRemuneration && chargesFixes.source === "propre";
+  const sharedMode = sharedTotal > 0 && chargesFixes.source === "activite";
+  const originControl =
+    sharedTotal > 0 ? (
+      <Segmented
+        label="Origine des charges"
+        value={chargesFixes.source}
+        options={CHARGE_SOURCES}
+        onChange={(source: ChargeSource) => actions.setChargesSource(source)}
+      />
+    ) : null;
+  const sharedBlock = (
+    <div className="grid gap-4">
+      <p className="text-base font-semibold">Vos charges du mois</p>
+      <p className="flex flex-wrap justify-between gap-x-4 gap-y-1">
+        <span>Votre part des charges partagées</span>
+        {calcul.volume === null ? (
+          <span className="text-muted-foreground">Indiquez vos ventes par mois</span>
+        ) : (
+          <span data-testid="shared-share" className="font-semibold tabular-nums">
+            {formatAmount(fixed ?? 0)} F par mois
+          </span>
+        )}
+      </p>
+      <Link
+        to="/activite"
+        className="w-fit rounded-md text-muted-foreground underline underline-offset-4 outline-offset-4 focus-visible:outline-3 focus-visible:outline-ring"
+      >
+        Modifier mes charges partagées
+      </Link>
+    </div>
+  );
   const fixedPerUnit = fixed !== null && calcul.volume !== null ? fixed / calcul.volume : null;
   const message = "message" in outcome ? outcome.message : "";
 
@@ -105,7 +159,7 @@ export function CalculerPage() {
   function savePrice(name: string): void {
     if (result === null) return;
     actions.setNom(name);
-    const id = stores.prices.getState().save({ ...calcul, nom: name }, snapshotOf(result), name);
+    const id = stores.prices.getState().save({ ...effective, nom: name }, snapshotOf(result), name);
     actions.linkTo(id);
     toast("Prix enregistré", {
       description: "Retrouvez-le dans Mes prix.",
@@ -116,7 +170,7 @@ export function CalculerPage() {
   function updatePrice(name: string): void {
     if (result === null || linkedPriceId === null) return;
     actions.setNom(name);
-    stores.prices.getState().update(linkedPriceId, { ...calcul, nom: name }, snapshotOf(result), name);
+    stores.prices.getState().update(linkedPriceId, { ...effective, nom: name }, snapshotOf(result), name);
     toast("Prix mis à jour", { action: { label: "Voir", onClick: () => void navigate("/prix") } });
   }
 
@@ -182,6 +236,9 @@ export function CalculerPage() {
                 onSubmit={(event) => event.preventDefault()}
                 className="grid gap-8"
               >
+                <Tip tipKey="q2">
+                  Comptez tout ce que vous dépensez pour <strong>une</strong> vente.
+                </Tip>
                 {coutDirect.mode === "total" ? (
                   <AmountField
                     id="cost"
@@ -212,7 +269,11 @@ export function CalculerPage() {
                   </div>
                 )}
 
-                {chargesFixes.mode === "total" ? (
+                <Tip tipKey="q3">Ce que vous payez chaque mois, même sans vendre. N'oubliez pas votre salaire.</Tip>
+                {originControl}
+                {sharedMode ? (
+                  sharedBlock
+                ) : chargesFixes.mode === "total" ? (
                   <AmountField
                     id="fixed"
                     label="Vos charges du mois"
@@ -292,7 +353,10 @@ export function CalculerPage() {
                 )}
                 {result !== null ? (
                   <>
-                    <ResultCard result={result} calcul={calcul} />
+                    <Tip tipKey="result">
+                      Essayez une autre marge : changez-la dans « Ajuster » et regardez le prix bouger.
+                    </Tip>
+                    <ResultCard result={result} calcul={effective} />
                     <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
@@ -347,7 +411,7 @@ export function CalculerPage() {
         <ShareSheet
           open={shareOpen}
           onOpenChange={setShareOpen}
-          summary={buildSummary(calcul, result)}
+          summary={buildSummary(effective, result)}
           title={calcul.nom.trim() === "" ? "Mon prix" : calcul.nom.trim()}
         />
       )}

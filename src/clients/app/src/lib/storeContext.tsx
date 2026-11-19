@@ -3,6 +3,7 @@ import { useStore } from "zustand";
 import { browserStorage, type StorageAdapter } from "./storage";
 import {
   createAppStores,
+  type ActivityState,
   type AppStores,
   type CalcState,
   type PricesState,
@@ -45,4 +46,8 @@ export function usePrices<T>(selector: (state: PricesState) => T): T {
 
 export function useSettings<T>(selector: (state: SettingsState) => T): T {
   return useStore(useStores().settings, selector);
+}
+
+export function useActivityCharges<T>(selector: (state: ActivityState) => T): T {
+  return useStore(useStores().activity, selector);
 }

@@ -6,6 +6,7 @@ import { findActivity, type ActivityId } from "./activity";
 import {
   applyType,
   calculSchema,
+  chargeLineSchema,
   newCalcul,
   newId,
   type Calcul,
@@ -91,6 +92,8 @@ export interface CalcState {
   readonly removeChargeLine: (id: string) => void;
   /** Coche ou décoche une charge courante (pastille) ; renvoie l'identifiant de la ligne ajoutée, ou `null`. */
   readonly toggleChargePreset: (label: string) => string | null;
+  /** D'où viennent les charges : saisies pour ce produit, ou partagées dans « Mon activité » (E10). */
+  readonly setChargesSource: (source: Calcul["chargesFixes"]["source"]) => void;
   readonly dismissRemunerationReminder: () => void;
   readonly setVolume: (volume: number | null) => void;
   readonly setMarge: (marge: number) => void;
@@ -210,6 +213,7 @@ export function createCalcStore(adapter: StorageAdapter): StoreApi<CalcState> {
             }
             return get().addChargeLine({ label, amount: 0 });
           },
+          setChargesSource: (source) => edit((c) => ({ ...c, chargesFixes: { ...c.chargesFixes, source } })),
           dismissRemunerationReminder: () => edit((c) => ({ ...c, remunerationRappelVu: true })),
 
           setVolume: (volume) =>
@@ -445,12 +449,71 @@ export function createSettingsStore(adapter: StorageAdapter): StoreApi<SettingsS
   );
 }
 
+/* ------------------------------------------------------------ Mon activité */
+
+const activitySchema = z.object({ charges: z.array(chargeLineSchema).max(50) });
+
+export interface ActivityState {
+  /** Les charges du mois saisies une seule fois, partagées entre les produits (E10). */
+  readonly charges: readonly ChargeLineItem[];
+  readonly toggleCharge: (label: string) => string | null;
+  readonly addCharge: (line?: Partial<Omit<ChargeLineItem, "id">>) => string;
+  readonly updateCharge: (id: string, patch: Partial<Omit<ChargeLineItem, "id">>) => void;
+  readonly removeCharge: (id: string) => void;
+  readonly clear: () => void;
+}
+
+/** Total des charges partagées, en F par mois (0 tant qu'aucune n'est saisie). */
+export const sharedTotalOf = (charges: readonly ChargeLineItem[]): number =>
+  charges.reduce((sum, line) => sum + line.amount, 0);
+
+export function createActivityStore(adapter: StorageAdapter): StoreApi<ActivityState> {
+  const flags: ReadFlags = { unreadable: false };
+  return createStore<ActivityState>()(
+    persist<ActivityState, [], [], { charges: readonly ChargeLineItem[] }>(
+      (set, get) => ({
+        charges: [],
+        toggleCharge: (label) => {
+          const existing = get().charges.find((line) => line.label === label);
+          if (existing !== undefined) {
+            set((state) => ({ charges: state.charges.filter((line) => line.id !== existing.id) }));
+            return null;
+          }
+          return get().addCharge({ label, amount: 0 });
+        },
+        addCharge: (line = {}) => {
+          const id = newId();
+          set((state) => ({ charges: [...state.charges, { id, label: "", amount: 0, ...line }] }));
+          return id;
+        },
+        updateCharge: (id, patch) =>
+          set((state) => ({ charges: state.charges.map((line) => (line.id === id ? { ...line, ...patch } : line)) })),
+        removeCharge: (id) => set((state) => ({ charges: state.charges.filter((line) => line.id !== id) })),
+        clear: () => set({ charges: [] }),
+      }),
+      {
+        name: STORAGE_KEYS.activity,
+        version: PERSIST_VERSION,
+        storage: jsonStorage<{ charges: readonly ChargeLineItem[] }>(adapter, flags),
+        partialize: (state) => ({ charges: state.charges }),
+        migrate: (persisted) => persisted as { charges: readonly ChargeLineItem[] },
+        // Données abîmées : on repart sans charges partagées (le calcul reste possible avec des charges propres).
+        merge: (persisted, current) => {
+          const parsed = activitySchema.safeParse(persisted);
+          return parsed.success ? { ...current, charges: parsed.data.charges } : current;
+        },
+      },
+    ),
+  );
+}
+
 /* ----------------------------------------------------------------- ensemble */
 
 export interface AppStores {
   readonly calc: StoreApi<CalcState>;
   readonly prices: StoreApi<PricesState>;
   readonly settings: StoreApi<SettingsState>;
+  readonly activity: StoreApi<ActivityState>;
 }
 
 export function createAppStores(adapter: StorageAdapter): AppStores {
@@ -458,12 +521,14 @@ export function createAppStores(adapter: StorageAdapter): AppStores {
     calc: createCalcStore(adapter),
     prices: createPricesStore(adapter),
     settings: createSettingsStore(adapter),
+    activity: createActivityStore(adapter),
   };
 }
 
-/** « Effacer toutes mes données » (E13) : prix, brouillon et réglages. */
+/** « Effacer toutes mes données » (E13) : prix, brouillon, activité et réglages. */
 export function wipeAll(stores: AppStores): void {
   stores.prices.getState().clear();
+  stores.activity.getState().clear();
   stores.calc.getState().reset();
   stores.settings.getState().resetAll();
 }

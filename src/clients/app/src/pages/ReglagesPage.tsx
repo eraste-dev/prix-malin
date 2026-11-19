@@ -75,6 +75,15 @@ export function ReglagesPage() {
         <ThemeCards theme={theme} onChange={choose} />
       </Block>
 
+      <Block title="Mon activité">
+        <p className="text-muted-foreground">
+          Saisissez vos charges du mois une seule fois : elles sont réparties entre vos produits.
+        </p>
+        <Button asChild variant="outline" className="h-12 w-fit rounded-full px-6 text-base">
+          <Link to="/activite">Ouvrir Mon activité</Link>
+        </Button>
+      </Block>
+
       <Block title="Présentation et aides">
         <div className="flex flex-wrap gap-3">
           <Button asChild variant="outline" className="h-12 rounded-full px-6 text-base">

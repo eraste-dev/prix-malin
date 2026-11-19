@@ -12,6 +12,7 @@ export const STORAGE_KEYS = {
   draft: "pm:draft",
   prices: "pm:prices",
   settings: "pm:settings",
+  activity: "pm:activity",
 } as const;
 
 /** Stockage en mémoire : tests, et repli quand le navigateur refuse tout stockage. */

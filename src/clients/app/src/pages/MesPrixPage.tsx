@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { ActivityInvite } from "../components/ActivityInvite";
 import { PageHeader } from "../components/PageHeader";
 import { Reveal } from "../components/Reveal";
 import { findActivity } from "../lib/activity";
@@ -66,6 +67,8 @@ export function MesPrixPage() {
   return (
     <>
       <PageHeader>Mes prix</PageHeader>
+
+      <ActivityInvite />
 
       {prices.length === 0 ? (
         <section aria-label="Aucun prix" className="grid justify-items-start gap-4 rounded-3xl bg-card p-8">
