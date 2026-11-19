@@ -117,6 +117,9 @@ export function listDelay(index: number): number {
 /** Comprendre, en secondes : le chemin du prix se trace segment par segment, les étapes apparaissent l'une après l'autre. */
 export const GUIDE = { lineDuration: 0.4, stepStagger: 0.12, stepDuration: 0.3, cardSlidePx: 24 } as const;
 
+/** Réglages, en secondes : les sections montent une à une ; la carte de thème choisie fait un petit rebond. */
+export const SETTINGS = { risePx: 20, duration: 0.4, stagger: 0.07, popFrom: 0.92, popDuration: 0.35 } as const;
+
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**

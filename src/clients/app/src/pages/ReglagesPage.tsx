@@ -1,17 +1,19 @@
-import { Download, Upload } from "lucide-react";
-import type { ChangeEvent, ReactNode } from "react";
-import { Link, useNavigate } from "react-router";
+import { BookOpen, Download, Lock, RotateCcw, Store, Upload } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "../components/PageHeader";
-import { Reveal } from "../components/Reveal";
+import { DisclosureToggle, Expand } from "../components/Disclosure";
+import { SettingsButton, SettingsFile, SettingsGroup, SettingsLink } from "../components/SettingsRow";
 import { ThemeCards } from "../components/ThemeCards";
 import { WipeDialog } from "../components/WipeDialog";
 import { CONTENT_VERSION } from "../content/comprendre";
 import { MAX_BACKUP_BYTES, backupFileName, buildBackup, importBackup, type ImportReport } from "../lib/backup";
 import { usePrices, useStores } from "../lib/storeContext";
 import { wipeAll } from "../lib/stores";
+import { SETTINGS } from "../lib/motion";
 import { useThemeContext } from "../lib/themeContext";
+import { SCENE_CLEAR, useScene } from "../lib/useScene";
 
 const plural = (count: number, one: string, many: string): string => `${count} ${count > 1 ? many : one}`;
 
@@ -33,6 +35,17 @@ export function ReglagesPage() {
   const navigate = useNavigate();
   const { theme, choose } = useThemeContext();
   const prices = usePrices((state) => state.prices);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const ref = useScene<HTMLDivElement>((_root, part, timeline) => {
+    timeline.from(part("group"), {
+      y: SETTINGS.risePx,
+      opacity: 0,
+      duration: SETTINGS.duration,
+      stagger: SETTINGS.stagger,
+      ease: "power2.out",
+      clearProps: SCENE_CLEAR,
+    });
+  });
 
   function exportPrices(): void {
     const blob = new Blob([buildBackup(prices)], { type: "application/json" });
@@ -47,8 +60,7 @@ export function ReglagesPage() {
     toast("Sauvegarde exportée");
   }
 
-  async function importPrices(event: ChangeEvent<HTMLInputElement>): Promise<void> {
-    const input = event.target;
+  async function importPrices(input: HTMLInputElement): Promise<void> {
     const file = input.files?.[0];
     if (file === undefined) return;
     // On refuse un fichier démesuré avant même de le lire.
@@ -75,91 +87,105 @@ export function ReglagesPage() {
     <>
       <PageHeader>Réglages</PageHeader>
 
-      <Block title="Thème" label="Thème">
-        <ThemeCards theme={theme} onChange={choose} />
-      </Block>
+      <div ref={ref} className="grid gap-12">
+        <Block title="Thème" label="Thème">
+          <ThemeCards theme={theme} onChange={choose} />
+        </Block>
 
-      <Block title="Mon activité">
-        <p className="text-muted-foreground">
-          Saisissez vos charges du mois une seule fois : elles sont réparties entre vos produits.
-        </p>
-        <Button asChild variant="outline" className="h-12 w-fit rounded-full px-6 text-base">
-          <Link to="/activite">Ouvrir Mon activité</Link>
-        </Button>
-      </Block>
+        <Block title="Mon activité">
+          <SettingsGroup>
+            <SettingsLink
+              to="/activite"
+              icon={Store}
+              label="Mon activité"
+              detail="Vos charges, réparties entre vos produits"
+            />
+          </SettingsGroup>
+        </Block>
 
-      <Block title="Présentation et aides">
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="outline" className="h-12 rounded-full px-6 text-base">
-            <Link to="/bienvenue">Revoir la présentation</Link>
-          </Button>
-          <Button type="button" variant="outline" onClick={resetTips} className="h-12 rounded-full px-6 text-base">
-            Réinitialiser les aides
-          </Button>
-        </div>
-      </Block>
+        <Block title="Présentation et aides">
+          <SettingsGroup>
+            <SettingsLink to="/bienvenue" icon={BookOpen} label="Revoir la présentation" />
+            <SettingsButton
+              onClick={resetTips}
+              icon={RotateCcw}
+              label="Réinitialiser les aides"
+              detail="Revoir les conseils déjà fermés"
+            />
+          </SettingsGroup>
+        </Block>
 
-      <Block title="Sauvegarde">
-        <p className="text-muted-foreground">
-          Gardez une copie de vos prix dans un fichier. Il reste sur votre téléphone : l'application ne l'envoie nulle
-          part.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={prices.length === 0}
-            onClick={exportPrices}
-            className="h-12 rounded-full px-6 text-base"
-          >
-            <Download className="size-4" aria-hidden="true" />
-            Exporter mes prix
-          </Button>
-          <Button asChild variant="outline" className="h-12 cursor-pointer rounded-full px-6 text-base">
-            <label>
-              <Upload className="size-4" aria-hidden="true" />
-              Importer un fichier
-              <input
-                type="file"
-                accept="application/json,.json"
-                onChange={(event) => void importPrices(event)}
-                className="sr-only"
-              />
-            </label>
-          </Button>
-        </div>
-      </Block>
+        <Block title="Sauvegarde">
+          <p className="text-muted-foreground">
+            Gardez une copie de vos prix dans un fichier. Il reste sur votre téléphone : l'application ne l'envoie nulle
+            part.
+          </p>
+          <SettingsGroup>
+            <SettingsButton
+              onClick={exportPrices}
+              disabled={prices.length === 0}
+              icon={Download}
+              label="Exporter mes prix"
+              detail={prices.length === 0 ? "Aucun prix pour l'instant" : plural(prices.length, "prix", "prix")}
+            />
+            <SettingsFile
+              accept="application/json,.json"
+              onFile={(input) => void importPrices(input)}
+              icon={Upload}
+              label="Importer un fichier"
+            />
+          </SettingsGroup>
+        </Block>
 
-      <Block title="Confidentialité">
-        <p>Tout reste sur votre téléphone. Aucune donnée n'est envoyée par l'application.</p>
-      </Block>
-
-      <Block title="À propos" label="À propos">
-        <dl className="grid gap-1">
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Version de l'application</dt>
-            <dd className="tabular-nums">{__APP_VERSION__}</dd>
+        <Block title="Confidentialité">
+          <div className="flex items-center gap-3 rounded-3xl bg-card p-5">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted">
+              <Lock className="size-5" aria-hidden="true" />
+            </span>
+            <p>Tout reste sur votre téléphone. Aucune donnée n'est envoyée par l'application.</p>
           </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Version du contenu</dt>
-            <dd className="tabular-nums">{CONTENT_VERSION}</dd>
-          </div>
-        </dl>
-      </Block>
+        </Block>
 
-      <Block title="Vos données">
-        <WipeDialog onConfirm={wipe} />
-      </Block>
+        <Block title="À propos" label="À propos">
+          <DisclosureToggle
+            expanded={aboutOpen}
+            collapsedLabel="Voir les versions"
+            expandedLabel="Masquer les versions"
+            onToggle={() => setAboutOpen((open) => !open)}
+          />
+          {aboutOpen && (
+            <Expand>
+              <dl className="grid gap-1 rounded-3xl bg-card p-5">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground">Version de l'application</dt>
+                  <dd className="tabular-nums">{__APP_VERSION__}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground">Version du contenu</dt>
+                  <dd className="tabular-nums">{CONTENT_VERSION}</dd>
+                </div>
+              </dl>
+            </Expand>
+          )}
+        </Block>
+
+        <Block title="Vos données">
+          <div className="grid gap-4 rounded-3xl bg-card p-5">
+            <p className="text-muted-foreground">
+              Efface vos prix, votre brouillon et vos réglages de cet appareil. Impossible à annuler.
+            </p>
+            <WipeDialog onConfirm={wipe} />
+          </div>
+        </Block>
+      </div>
     </>
   );
 }
 
 function Block({ title, label, children }: { readonly title: string; readonly label?: string; readonly children: ReactNode }) {
   return (
-    <section aria-label={label ?? title} className="grid gap-3">
-      <Reveal as="h2" beat={0} className="text-xl font-light">
-        {title}
-      </Reveal>
+    <section aria-label={label ?? title} data-part="group" className="grid gap-3">
+      <h2 className="text-xl font-light">{title}</h2>
       {children}
     </section>
   );

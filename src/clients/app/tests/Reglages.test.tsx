@@ -27,8 +27,10 @@ describe("sections", () => {
     expect(screen.getByText(/tout reste sur votre téléphone/i)).toBeInTheDocument();
   });
 
-  it("donne la version de l'application et celle du contenu", () => {
+  it("donne la version de l'application et celle du contenu, une fois « À propos » déplié", async () => {
+    const user = userEvent.setup();
     render(<App />);
+    await user.click(screen.getByRole("button", { name: /voir les versions/i }));
     const about = screen.getByRole("region", { name: /à propos/i });
     expect(about).toHaveTextContent(/version de l'application\s*:?\s*\d+\.\d+\.\d+/i);
     expect(about).toHaveTextContent(new RegExp(`version du contenu\\s*:?\\s*${CONTENT_VERSION}`, "i"));

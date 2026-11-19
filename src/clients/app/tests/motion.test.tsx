@@ -163,14 +163,11 @@ describe("Chorégraphie : chaque élément s'anime séparément, dans un ordre c
     expect(tabs[0]).toBeLessThan(tabs.at(-1)!);
   });
 
-  it("réglages : titre puis chaque carte de thème, une à une", async () => {
+  it("réglages : chaque carte de thème entre à son tour (les sections ont leur propre geste)", async () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole("link", { name: "Réglages" }));
-    const order = [
-      screen.getByRole("heading", { name: "Thème" }),
-      ...["Système", "Clair", "Sombre"].map((name) => screen.getByRole("radio", { name }).closest("label")),
-    ];
+    const order = ["Système", "Clair", "Sombre"].map((name) => screen.getByRole("radio", { name }).closest("label"));
     expect(increasing(order.map(delayOf))).toBe(true);
   });
 });
