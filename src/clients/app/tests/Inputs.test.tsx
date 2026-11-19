@@ -1,13 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import gsap from "gsap";
+import { describe, expect, it, vi } from "vitest";
 import { App } from "../src/App";
+import { setReducedMotion } from "./motionEnv";
 
 /** Q1 (nom, unité), Q2 (coût direct, Total ou Détail), Q3 (charges, pastilles, rémunération) — docs/15 E02 à E04. */
 type User = ReturnType<typeof userEvent.setup>;
 
-const costMode = () => within(screen.getByRole("radiogroup", { name: /saisie du coût/i }));
-const chargesMode = () => within(screen.getByRole("radiogroup", { name: /saisie des charges/i }));
 const price = () => screen.queryByTestId("price");
 
 async function fillVolume(user: User, value = "2000") {
@@ -52,7 +52,7 @@ describe("Q1 — nom et unité de vente (EXG-02)", () => {
 describe("Q2 — coût direct : Total ou Détail", () => {
   it("est en mode Total par défaut", () => {
     render(<App />);
-    expect(costMode().getByRole("radio", { name: "Total" })).toBeChecked();
+    expect(screen.getByRole("button", { name: /détailler mes coûts/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/ce que ça vous coûte/i)).toBeInTheDocument();
   });
 
@@ -61,7 +61,7 @@ describe("Q2 — coût direct : Total ou Détail", () => {
     render(<App />);
     await user.type(screen.getByLabelText(/ce que ça vous coûte/i), "210");
 
-    await user.click(costMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
 
     expect(screen.getByLabelText(/prix unitaire de la ligne 1/i)).toHaveValue("210");
     expect(screen.getByLabelText(/quantité de la ligne 1/i)).toHaveValue("1");
@@ -70,7 +70,7 @@ describe("Q2 — coût direct : Total ou Détail", () => {
   it("une pastille de suggestion ajoute une ligne nommée et place le curseur sur son montant (Q2-03)", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(costMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
 
     await user.click(screen.getByRole("button", { name: "+ Transport" }));
 
@@ -81,7 +81,7 @@ describe("Q2 — coût direct : Total ou Détail", () => {
   it("calcule le total ligne par ligne : quantité décimale admise (0,5 kg)", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(costMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
     await user.click(screen.getByRole("button", { name: /ajouter une ligne/i }));
     await user.clear(screen.getByLabelText(/quantité de la ligne 1/i));
     await user.type(screen.getByLabelText(/quantité de la ligne 1/i), "0,5");
@@ -93,7 +93,7 @@ describe("Q2 — coût direct : Total ou Détail", () => {
   it("le détail alimente le prix comme le total équivalent : 450 F", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(costMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
     await user.click(screen.getByRole("button", { name: /ajouter une ligne/i }));
     await user.type(screen.getByLabelText(/prix unitaire de la ligne 1/i), "210");
     await user.type(screen.getByLabelText(/charges du mois/i), "220000");
@@ -104,7 +104,7 @@ describe("Q2 — coût direct : Total ou Détail", () => {
   it("supprime une ligne par son bouton", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(costMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
     await user.click(screen.getByRole("button", { name: "+ Emballage" }));
     await user.click(screen.getByRole("button", { name: "+ Pertes" }));
 
@@ -117,35 +117,28 @@ describe("Q2 — coût direct : Total ou Détail", () => {
   it("Détail → Total additionne les lignes", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(costMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
     await user.click(screen.getByRole("button", { name: /ajouter une ligne/i }));
     await user.type(screen.getByLabelText(/prix unitaire de la ligne 1/i), "150");
     await user.click(screen.getByRole("button", { name: /ajouter une ligne/i }));
     await user.type(screen.getByLabelText(/prix unitaire de la ligne 2/i), "60");
 
-    await user.click(costMode().getByRole("radio", { name: "Total" }));
+    await user.click(screen.getByRole("button", { name: /revenir au total des coûts/i }));
 
     expect(screen.getByLabelText(/ce que ça vous coûte/i)).toHaveValue("210");
-  });
-
-  it("recliquer le mode actif ne change rien", async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await user.click(costMode().getByRole("radio", { name: "Total" }));
-    expect(costMode().getByRole("radio", { name: "Total" })).toBeChecked();
   });
 });
 
 describe("Q3 — charges du mois : Total ou Détail en pastilles", () => {
   it("est en mode Total par défaut", () => {
     render(<App />);
-    expect(chargesMode().getByRole("radio", { name: "Total" })).toBeChecked();
+    expect(screen.getByRole("button", { name: /détailler mes charges/i })).toBeInTheDocument();
   });
 
   it("propose les charges courantes en pastilles, « Ma rémunération » en tête", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(chargesMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes charges/i }));
 
     const names = ["Ma rémunération", "Loyer", "Électricité", "Eau", "Téléphone", "Transport", "Aide ou salarié"];
     for (const name of names) {
@@ -158,7 +151,7 @@ describe("Q3 — charges du mois : Total ou Détail en pastilles", () => {
   it("cocher une pastille ouvre son montant ; la décocher le retire", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(chargesMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes charges/i }));
 
     await user.click(screen.getByRole("button", { name: "Loyer" }));
     const amount = screen.getByLabelText(/montant : loyer/i);
@@ -175,7 +168,7 @@ describe("Q3 — charges du mois : Total ou Détail en pastilles", () => {
     const user = userEvent.setup();
     render(<App />);
     await user.type(screen.getByLabelText(/ce que ça vous coûte/i), "210");
-    await user.click(chargesMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes charges/i }));
     await user.click(screen.getByRole("button", { name: "Loyer" }));
     await user.type(screen.getByLabelText(/montant : loyer/i), "100000");
     await user.click(screen.getByRole("button", { name: "Ma rémunération" }));
@@ -188,7 +181,7 @@ describe("Q3 — charges du mois : Total ou Détail en pastilles", () => {
   it("une autre charge se nomme librement", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(chargesMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes charges/i }));
 
     await user.click(screen.getByRole("button", { name: /autre charge/i }));
     await user.type(screen.getByLabelText(/nom de la charge 1/i), "Assurance");
@@ -244,7 +237,7 @@ describe("rappel « Avez-vous compté votre salaire ? » (docs/13, Q-28)", () =>
 
     await user.click(screen.getByRole("button", { name: /l'ajouter/i }));
 
-    expect(chargesMode().getByRole("radio", { name: "Détail" })).toBeChecked();
+    expect(screen.getByRole("button", { name: /revenir au total des charges/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ma rémunération", pressed: true })).toBeInTheDocument();
     expect(screen.getByLabelText(/montant : ma rémunération/i)).toHaveFocus();
     expect(reminder()).not.toBeInTheDocument();
@@ -253,10 +246,62 @@ describe("rappel « Avez-vous compté votre salaire ? » (docs/13, Q-28)", () =>
   it("n'apparaît pas quand « Ma rémunération » est déjà cochée", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(chargesMode().getByRole("radio", { name: "Détail" }));
+    await user.click(screen.getByRole("button", { name: /détailler mes charges/i }));
     await user.click(screen.getByRole("button", { name: "Loyer" }));
     await user.type(screen.getByLabelText(/montant : loyer/i), "100000");
     await user.click(screen.getByRole("button", { name: "Ma rémunération" }));
     expect(reminder()).not.toBeInTheDocument();
+  });
+});
+
+describe("formulaire « Vos chiffres » simple", () => {
+  it("n'affiche aucune bascule segmentée : le détail se demande par un lien discret sous le champ", () => {
+    render(<App />);
+    expect(screen.queryByRole("radiogroup", { name: /saisie du coût/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: /saisie des charges/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: /origine des charges/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /détailler mes coûts/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /détailler mes charges/i })).toBeInTheDocument();
+  });
+
+  it("l'aide « ? » est une icône à droite du libellé, sur la même ligne", () => {
+    render(<App />);
+    const label = screen.getByText("Ce que ça vous coûte à chaque vente");
+    const row = label.parentElement as HTMLElement;
+    expect(row).toContainElement(screen.getByRole("button", { name: "Aide : coût direct" }));
+    expect(row.className).toMatch(/justify-between/);
+  });
+
+  it("les boutons de détail annoncent qu'ils se déplient : aria-expanded, qui passe à vrai une fois ouvert", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect(screen.getByRole("button", { name: /détailler mes coûts/i })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: /détailler mes charges/i })).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
+
+    expect(screen.getByRole("button", { name: /revenir au total des coûts/i })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+  });
+
+  it("le détail se déploie en hauteur quand le mouvement est autorisé, sans style en ligne sinon", async () => {
+    const user = userEvent.setup();
+    setReducedMotion(false);
+    const from = vi.spyOn(gsap, "from");
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
+    expect(from.mock.calls.some(([, vars]) => (vars as { height?: number }).height === 0)).toBe(true);
+  });
+
+  it("le lien « Détailler » ne perd rien et « Revenir au total » rend le champ", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.type(screen.getByLabelText(/ce que ça vous coûte/i), "210");
+    await user.click(screen.getByRole("button", { name: /détailler mes coûts/i }));
+    expect(screen.queryByRole("button", { name: /détailler mes coûts/i })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /revenir au total des coûts/i }));
+    expect(screen.getByLabelText(/ce que ça vous coûte/i)).toHaveValue("210");
   });
 });

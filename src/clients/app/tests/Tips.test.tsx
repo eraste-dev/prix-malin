@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router";
@@ -13,25 +13,36 @@ const seenTips = () => JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) ??
 const notes = () => screen.queryAllByRole("note");
 
 describe("aides contextuelles", () => {
-  it("affiche l'aide de Q2 et de Q3 la première fois", () => {
+  it("le formulaire n'affiche plus de bannière : le conseil de Q2 et de Q3 est derrière l'icône d'aide, à droite du libellé", () => {
     render(<App />);
-    const text = notes().map((note) => note.textContent).join(" ");
-    expect(text).toMatch(/comptez tout ce que vous dépensez pour une vente/i);
-    expect(text).toMatch(/même sans vendre/i);
+    expect(notes()).toHaveLength(0);
+    expect(screen.getByRole("button", { name: "Aide : coût direct" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aide : charges fixes" })).toBeInTheDocument();
+  });
+
+  it("l'aide d'un champ dit de tout compter (coût direct) et de ne pas oublier son salaire (charges)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Aide : coût direct" }));
+    expect(within(await screen.findByRole("dialog")).getByText(/comptez tout, même les petits coûts/i)).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await user.click(screen.getByRole("button", { name: "Aide : charges fixes" }));
+    expect(within(await screen.findByRole("dialog")).getByText(/votre salaire/i)).toBeInTheDocument();
   });
 
   it("« Compris » ferme une aide pour toujours (drapeau enregistré)", async () => {
     const user = userEvent.setup();
+    seedDraft(bissap());
     const first = render(<App />);
-    const q2 = notes().find((note) => /comptez tout/i.test(note.textContent ?? "")) as HTMLElement;
+    const result = notes().find((note) => /essayez une autre marge/i.test(note.textContent ?? "")) as HTMLElement;
 
-    await user.click(within(q2).getByRole("button", { name: /compris/i }));
+    await user.click(within(result).getByRole("button", { name: /compris/i }));
 
-    expect(seenTips()).toContain("q2");
+    expect(seenTips()).toContain("result");
     first.unmount();
     render(<App />);
-    expect(notes().some((note) => /comptez tout/i.test(note.textContent ?? ""))).toBe(false);
-    expect(notes().some((note) => /même sans vendre/i.test(note.textContent ?? ""))).toBe(true);
+    expect(notes().some((note) => /essayez une autre marge/i.test(note.textContent ?? ""))).toBe(false);
   });
 
   it("le premier résultat suggère d'essayer une autre marge", () => {
@@ -51,6 +62,7 @@ describe("aides contextuelles", () => {
       STORAGE_KEYS.settings,
       JSON.stringify({ state: { onboardingSeen: 1, tipsSeen: ["q2", "q3", "result"], lastActivity: null }, version: 1 }),
     );
+    seedDraft(bissap());
     window.location.hash = "#/reglages";
     const first = render(<App />);
     expect(notes()).toHaveLength(0);

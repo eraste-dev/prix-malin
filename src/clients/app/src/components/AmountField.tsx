@@ -19,7 +19,7 @@ interface AmountFieldProps {
   readonly labelHidden?: boolean;
   /** Place le curseur dans le champ à son apparition (ligne qu'on vient d'ajouter). */
   readonly autoFocus?: boolean;
-  /** Contrôle placé à droite du libellé (ex. bascule Total / Détail), qui passe à la ligne si la place manque. */
+  /** Icône à droite du libellé, sur la même ligne (ex. le bouton d'aide « ? »). */
   readonly action?: ReactNode;
   readonly value: number | null;
   readonly onChange: (value: number | null) => void;
@@ -56,7 +56,7 @@ export function AmountField({
           {label}
         </Label>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex items-center justify-between gap-4">
           <Reveal as={Label} beat={beat} htmlFor={id} className="text-base font-semibold">
             {label}
           </Reveal>

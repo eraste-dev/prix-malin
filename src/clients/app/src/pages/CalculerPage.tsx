@@ -8,6 +8,7 @@ import { AdjustPanel } from "../components/AdjustPanel";
 import { AmountField } from "../components/AmountField";
 import { ChangeActivityDialog } from "../components/ChangeActivityDialog";
 import { ChargeLines } from "../components/ChargeLines";
+import { DisclosureToggle, Expand, FieldHeader } from "../components/Disclosure";
 import { CostLines } from "../components/CostLines";
 import { HelpButton } from "../components/HelpButton";
 import { PageHeader } from "../components/PageHeader";
@@ -19,10 +20,11 @@ import { ShareSheet } from "../components/ShareSheet";
 import { Step } from "../components/Step";
 import { StepRail } from "../components/StepRail";
 import { TextField } from "../components/TextField";
+import { TextAction } from "../components/TextAction";
 import { Tip } from "../components/Tip";
 import { formatAmount, formatMoney } from "../lib/amount";
 import { REMUNERATION_LABEL } from "../lib/charges";
-import { chargesTotalOf, directTotalOf, type InputMode, type ResultMode } from "../lib/model";
+import { chargesTotalOf, directTotalOf, type ResultMode } from "../lib/model";
 import { BEAT } from "../lib/motion";
 import { computeOutcome, type OutcomeResult } from "../lib/outcome";
 import { buildSummary, defaultPriceName } from "../lib/share";
@@ -31,18 +33,6 @@ import { computeStepStatuses, describeSteps, STEP_TITLES } from "../lib/steps";
 import { useActivityCharges, useCalc, usePrices, useStores } from "../lib/storeContext";
 import { sharedTotalOf } from "../lib/stores";
 import { useActivity } from "../lib/useActivity";
-
-const INPUT_MODES = [
-  { value: "total", label: "Total" },
-  { value: "detail", label: "Détail" },
-] as const;
-
-type ChargeSource = "propre" | "activite";
-
-const CHARGE_SOURCES = [
-  { value: "propre", label: "Charges propres" },
-  { value: "activite", label: "Mes charges partagées" },
-] as const;
 
 const RESULT_MODES = [
   { value: "conseille", label: "Prix conseillé" },
@@ -101,14 +91,9 @@ export function CalculerPage() {
   const showReminder =
     fixed !== null && !calcul.remunerationRappelVu && !hasRemuneration && chargesFixes.source === "propre";
   const sharedMode = sharedTotal > 0 && chargesFixes.source === "activite";
-  const originControl =
-    sharedTotal > 0 ? (
-      <Segmented
-        label="Origine des charges"
-        value={chargesFixes.source}
-        options={CHARGE_SOURCES}
-        onChange={(source: ChargeSource) => actions.setChargesSource(source)}
-      />
+  const sharedLink =
+    sharedTotal > 0 && !sharedMode ? (
+      <TextAction onClick={() => actions.setChargesSource("activite")}>Utiliser mes charges partagées</TextAction>
     ) : null;
   const sharedBlock = (
     <div className="grid gap-4">
@@ -123,12 +108,15 @@ export function CalculerPage() {
           </span>
         )}
       </p>
-      <Link
-        to="/activite"
-        className="w-fit rounded-md text-muted-foreground underline underline-offset-4 outline-offset-4 focus-visible:outline-3 focus-visible:outline-ring"
-      >
-        Modifier mes charges partagées
-      </Link>
+      <div className="flex flex-wrap gap-x-6">
+        <Link
+          to="/activite"
+          className="inline-flex min-h-11 w-fit items-center rounded-md text-muted-foreground underline underline-offset-4 outline-offset-4 focus-visible:outline-3 focus-visible:outline-ring"
+        >
+          Modifier mes charges partagées
+        </Link>
+        <TextAction onClick={() => actions.setChargesSource("propre")}>Saisir mes propres charges</TextAction>
+      </div>
     </div>
   );
   const fixedPerUnit = fixed !== null && calcul.volume !== null ? fixed / calcul.volume : null;
@@ -174,29 +162,8 @@ export function CalculerPage() {
     toast("Prix mis à jour", { action: { label: "Voir", onClick: () => void navigate("/prix") } });
   }
 
-  const costModeControl = (
-    <div className="flex flex-wrap items-center gap-2">
-      <HelpButton term="cout-direct" />
-      <Segmented
-        label="Saisie du coût"
-        value={coutDirect.mode}
-        options={INPUT_MODES}
-        onChange={(mode: InputMode) => actions.setCostMode(mode)}
-      />
-    </div>
-  );
-  const chargesModeControl = (
-    <div className="flex flex-wrap items-center gap-2">
-      <HelpButton term="charges-fixes" />
-      <Segmented
-        label="Saisie des charges"
-        value={chargesFixes.mode}
-        options={INPUT_MODES}
-        onChange={(mode: InputMode) => actions.setChargesMode(mode)}
-      />
-    </div>
-  );
-
+  const costHelp = <HelpButton term="cout-direct" />;
+  const chargesHelp = <HelpButton term="charges-fixes" />;
   return (
     <>
       <PageHeader>
@@ -236,70 +203,78 @@ export function CalculerPage() {
                 onSubmit={(event) => event.preventDefault()}
                 className="grid gap-8"
               >
-                <Tip tipKey="q2">
-                  Comptez tout ce que vous dépensez pour <strong>une</strong> vente.
-                </Tip>
-                {coutDirect.mode === "total" ? (
-                  <AmountField
-                    id="cost"
-                    label="Ce que ça vous coûte à chaque vente"
-                    hint="Comptez tout ce que vous dépensez pour une vente : matières, emballage, transport."
-                    example="210"
-                    unit="FCFA"
-                    beat={BEAT.field1}
-                    action={costModeControl}
-                    value={coutDirect.total}
-                    onChange={actions.setCostTotal}
-                  />
-                ) : (
-                  <div className="grid gap-4">
-                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-                      <p className="text-base font-semibold">Ce que ça vous coûte à chaque vente</p>
-                      {costModeControl}
-                    </div>
-                    <CostLines
-                      lines={coutDirect.lignes}
-                      suggestions={activity.costSuggestions}
-                      total={cost}
-                      focusId={focusId}
-                      onAdd={addCostLine}
-                      onUpdate={actions.updateCostLine}
-                      onRemove={actions.removeCostLine}
+                <div className="grid gap-4">
+                  {coutDirect.mode === "total" ? (
+                    <AmountField
+                      id="cost"
+                      label="Ce que ça vous coûte à chaque vente"
+                      hint="Comptez tout ce que vous dépensez pour une vente : matières, emballage, transport."
+                      example="210"
+                      unit="FCFA"
+                      beat={BEAT.field1}
+                      action={costHelp}
+                      value={coutDirect.total}
+                      onChange={actions.setCostTotal}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <Expand className="grid gap-4">
+                      <FieldHeader title="Ce que ça vous coûte à chaque vente" help={costHelp} />
+                      <CostLines
+                        lines={coutDirect.lignes}
+                        suggestions={activity.costSuggestions}
+                        total={cost}
+                        focusId={focusId}
+                        onAdd={addCostLine}
+                        onUpdate={actions.updateCostLine}
+                        onRemove={actions.removeCostLine}
+                      />
+                    </Expand>
+                  )}
+                  <DisclosureToggle
+                    expanded={coutDirect.mode === "detail"}
+                    collapsedLabel="Détailler mes coûts"
+                    expandedLabel="Revenir au total des coûts"
+                    onToggle={() => actions.setCostMode(coutDirect.mode === "total" ? "detail" : "total")}
+                  />
+                </div>
 
-                <Tip tipKey="q3">Ce que vous payez chaque mois, même sans vendre. N'oubliez pas votre salaire.</Tip>
-                {originControl}
                 {sharedMode ? (
                   sharedBlock
-                ) : chargesFixes.mode === "total" ? (
-                  <AmountField
-                    id="fixed"
-                    label="Vos charges du mois"
-                    hint="Loyer, électricité, transport… et votre salaire."
-                    example="220 000"
-                    unit="FCFA"
-                    beat={BEAT.field2}
-                    action={chargesModeControl}
-                    value={chargesFixes.total}
-                    onChange={actions.setChargesTotal}
-                  />
                 ) : (
                   <div className="grid gap-4">
-                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-                      <p className="text-base font-semibold">Vos charges du mois</p>
-                      {chargesModeControl}
-                    </div>
-                    <ChargeLines
-                      lines={chargesFixes.lignes}
-                      total={fixed}
-                      focusId={focusId}
-                      onTogglePreset={togglePreset}
-                      onAddCustom={() => setFocusId(actions.addChargeLine({ label: "" }))}
-                      onUpdate={actions.updateChargeLine}
-                      onRemove={actions.removeChargeLine}
+                    {chargesFixes.mode === "total" ? (
+                      <AmountField
+                        id="fixed"
+                        label="Vos charges du mois"
+                        hint="Loyer, électricité, transport… et votre salaire."
+                        example="220 000"
+                        unit="FCFA"
+                        beat={BEAT.field2}
+                        action={chargesHelp}
+                        value={chargesFixes.total}
+                        onChange={actions.setChargesTotal}
+                      />
+                    ) : (
+                      <Expand className="grid gap-4">
+                        <FieldHeader title="Vos charges du mois" help={chargesHelp} />
+                        <ChargeLines
+                          lines={chargesFixes.lignes}
+                          total={fixed}
+                          focusId={focusId}
+                          onTogglePreset={togglePreset}
+                          onAddCustom={() => setFocusId(actions.addChargeLine({ label: "" }))}
+                          onUpdate={actions.updateChargeLine}
+                          onRemove={actions.removeChargeLine}
+                        />
+                      </Expand>
+                    )}
+                    <DisclosureToggle
+                      expanded={chargesFixes.mode === "detail"}
+                      collapsedLabel="Détailler mes charges"
+                      expandedLabel="Revenir au total des charges"
+                      onToggle={() => actions.setChargesMode(chargesFixes.mode === "total" ? "detail" : "total")}
                     />
+                    {sharedLink}
                   </div>
                 )}
 

@@ -200,11 +200,33 @@ export function findArticle(wanted: string): Article | undefined {
   return ARTICLES.find((article) => article.slug === wanted);
 }
 
-/** Un conseil par jour, le même toute la journée (rotatif, sans aléa). */
-export function tipOfTheDay(date: Date): { readonly slug: string; readonly text: string } {
+export interface Tip {
+  readonly slug: string;
+  readonly text: string;
+}
+
+/** Nombre de conseils dans le carrousel de l'accueil (5 points de 44 px tiennent sur 360 px). */
+export const TIP_COUNT = 5;
+
+function dayOfYear(date: Date): number {
   const startOfYear = new Date(date.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((date.getTime() - startOfYear.getTime()) / 86_400_000);
-  const article = ARTICLES[dayOfYear % ARTICLES.length] ?? ARTICLES[0];
+  return Math.floor((date.getTime() - startOfYear.getTime()) / 86_400_000);
+}
+
+/** Un conseil par jour, le même toute la journée (rotatif, sans aléa). */
+export function tipOfTheDay(date: Date): Tip {
+  const article = ARTICLES[dayOfYear(date) % ARTICLES.length] ?? ARTICLES[0];
   if (article === undefined) throw new Error("Aucun article de contenu");
   return { slug: article.slug, text: article.tip };
+}
+
+/** Les conseils du carrousel : celui du jour d'abord, puis les suivants, sans doublon. */
+export function tipsFrom(date: Date): readonly Tip[] {
+  const start = dayOfYear(date);
+  const count = Math.min(TIP_COUNT, ARTICLES.length);
+  return Array.from({ length: count }, (_unused, offset) => {
+    const article = ARTICLES[(start + offset) % ARTICLES.length];
+    if (article === undefined) throw new Error("Aucun article de contenu");
+    return { slug: article.slug, text: article.tip };
+  });
 }

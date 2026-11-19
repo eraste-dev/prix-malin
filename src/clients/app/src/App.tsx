@@ -29,7 +29,7 @@ function Layout() {
       >
         Aller au contenu
       </button>
-      <main id="contenu" tabIndex={-1} className="mx-auto grid max-w-xl gap-12 px-5 pt-6 pb-32 outline-none">
+      <main id="contenu" tabIndex={-1} className="mx-auto grid max-w-xl grid-cols-[minmax(0,1fr)] gap-12 px-5 pt-6 pb-32 outline-none">
         <IntegrityBanners />
         <Outlet />
       </main>

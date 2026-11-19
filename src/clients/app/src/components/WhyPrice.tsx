@@ -57,7 +57,7 @@ export function WhyPrice({ data, volume, targetMarginPct, feePct, roundingStep }
   return (
     <Reveal beat={RESULT_BEAT.composition} sub={1}>
       <Collapsible open={open} onOpenChange={setOpen} className="grid gap-4">
-        <CollapsibleTrigger className="flex min-h-11 w-full items-center justify-between gap-4 rounded-xl text-left font-semibold outline-offset-2 focus-visible:outline-3 focus-visible:outline-ring">
+        <CollapsibleTrigger className="flex min-h-12 w-full cursor-pointer items-center justify-between gap-4 rounded-2xl bg-muted px-4 text-left font-semibold transition-colors hover:bg-muted/70 focus-visible:outline-3 focus-visible:outline-ring">
           Pourquoi ce prix ?
           <ChevronDown ref={chevronRef} data-open={open} className="size-5 shrink-0" aria-hidden="true" />
         </CollapsibleTrigger>

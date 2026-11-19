@@ -37,10 +37,10 @@ export function ActivityChoice({ value, onChange }: ActivityChoiceProps) {
           <ToggleGroupItem
             key={activity.id}
             value={activity.id}
-            className="h-auto min-h-28 w-full flex-col justify-center gap-3 rounded-3xl bg-card px-2 py-4 text-center data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="h-auto min-h-28 w-full flex-col justify-center gap-3 rounded-3xl bg-card px-1 py-4 text-center data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           >
             <Icon className="size-7" aria-hidden="true" />
-            <span className="text-base font-semibold">{activity.label}</span>
+            <span className="max-w-full text-base font-semibold break-words hyphens-auto">{activity.label}</span>
             <span className="sr-only">{activity.example}</span>
           </ToggleGroupItem>
         );

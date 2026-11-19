@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { App } from "../src/App";
@@ -58,7 +58,26 @@ describe("les trois cartes", () => {
     expect(card(/trois questions, c'est tout/i)).toBeInTheDocument();
   });
 
-  it("« Passer » est atteignable sur chaque carte", async () => {
+  it("se feuillettent d'un glissement du doigt, et un petit geste ne change rien", () => {
+    firstLaunch();
+    render(<App />);
+    const surface = screen.getByTestId("onboarding-swipe");
+    const swipe = (from: number, to: number) => {
+      fireEvent.pointerDown(surface, { clientX: from, clientY: 200, pointerId: 1 });
+      fireEvent.pointerUp(surface, { clientX: to, clientY: 200, pointerId: 1 });
+    };
+
+    swipe(200, 190);
+    expect(card(/le bon prix/i)).toBeInTheDocument();
+    swipe(300, 100);
+    expect(card(/trois questions, c'est tout/i)).toBeInTheDocument();
+    swipe(100, 300);
+    expect(card(/le bon prix/i)).toBeInTheDocument();
+    swipe(100, 300);
+    expect(card(/le bon prix/i)).toBeInTheDocument();
+  });
+
+  it("« Passer » est atteignable sur les cartes 1 et 2, et absent de la dernière (« Commencer » suffit)", async () => {
     const user = userEvent.setup();
     firstLaunch();
     render(<App />);
@@ -66,7 +85,8 @@ describe("les trois cartes", () => {
       expect(screen.getByRole("button", { name: "Passer" })).toBeVisible();
       await user.click(screen.getByRole("button", { name: "Suivant" }));
     }
-    expect(screen.getByRole("button", { name: "Passer" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Passer" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Commencer" })).toBeVisible();
   });
 
   it("ONB-02 : « Passer » mène à l'Accueil et ne revient pas", async () => {
@@ -81,15 +101,14 @@ describe("les trois cartes", () => {
     expect(settings().onboardingSeen).toBeGreaterThanOrEqual(1);
   });
 
-  it("la dernière carte propose deux issues : calculer, ou voir un exemple", async () => {
+  it("la dernière carte propose une seule issue : « Commencer »", async () => {
     const user = userEvent.setup();
     firstLaunch();
     render(<App />);
     await user.click(screen.getByRole("button", { name: "Suivant" }));
     await user.click(screen.getByRole("button", { name: "Suivant" }));
 
-    expect(screen.getByRole("button", { name: "Calculer mon prix" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Voir un exemple d'abord" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Commencer" })).toBeInTheDocument();
   });
 
   it("ne demande ni compte, ni notification, ni position", () => {
@@ -98,7 +117,7 @@ describe("les trois cartes", () => {
     expect(screen.queryByText(/compte|notification|position|e-mail|email/i)).not.toBeInTheDocument();
   });
 
-  it("ONB-03 : « Calculer mon prix » ouvre Q1 avec tous les champs vides", async () => {
+  it("ONB-03 : « Commencer » ouvre Q1 avec tous les champs vides", async () => {
     const user = userEvent.setup();
     seedDraft(bissap());
     firstLaunch("#/bienvenue");
@@ -107,7 +126,7 @@ describe("les trois cartes", () => {
     await user.click(screen.getByRole("button", { name: "Suivant" }));
     await user.click(screen.getByRole("button", { name: "Suivant" }));
 
-    await user.click(screen.getByRole("button", { name: "Calculer mon prix" }));
+    await user.click(screen.getByRole("button", { name: "Commencer" }));
 
     expect(window.location.hash).toBe("#/calculer");
     expect(screen.getByLabelText(/ce que ça vous coûte/i)).toHaveValue("");
@@ -116,17 +135,15 @@ describe("les trois cartes", () => {
 });
 
 describe("exemple guidé", () => {
-  async function openExample(user: ReturnType<typeof userEvent.setup>) {
-    firstLaunch();
+  /** L'onboarding ne propose plus l'exemple (un seul bouton « Commencer ») : on l'ouvre par son adresse. */
+  function openExample(_user?: ReturnType<typeof userEvent.setup>): void {
+    window.location.hash = "#/exemple";
     render(<App />);
-    await user.click(screen.getByRole("button", { name: "Suivant" }));
-    await user.click(screen.getByRole("button", { name: "Suivant" }));
-    await user.click(screen.getByRole("button", { name: "Voir un exemple d'abord" }));
   }
 
   it("montre un calcul déjà rempli (bissap, 450 F), clairement étiqueté « Exemple »", async () => {
     const user = userEvent.setup();
-    await openExample(user);
+    openExample(user);
 
     expect(window.location.hash).toBe("#/exemple");
     expect(screen.getByTestId("example-banner")).toHaveTextContent(/exemple/i);
@@ -135,7 +152,7 @@ describe("exemple guidé", () => {
 
   it("guide en quatre bulles passables, puis propose « Faire le mien »", async () => {
     const user = userEvent.setup();
-    await openExample(user);
+    openExample(user);
     const coach = screen.getByRole("region", { name: /visite de l'exemple/i });
 
     expect(coach).toHaveTextContent(/voici le prix à viser : 450 F/i);
@@ -150,7 +167,7 @@ describe("exemple guidé", () => {
 
   it("« Faire le mien » ouvre Q1 avec les champs vides", async () => {
     const user = userEvent.setup();
-    await openExample(user);
+    openExample(user);
 
     const coach = screen.getByRole("region", { name: /visite de l'exemple/i });
     for (let i = 0; i < 3; i += 1) await user.click(within(coach).getByRole("button", { name: "Suivant" }));
@@ -162,7 +179,7 @@ describe("exemple guidé", () => {
 
   it("l'exemple est essayable : changer la marge change le prix", async () => {
     const user = userEvent.setup();
-    await openExample(user);
+    openExample(user);
 
     await user.click(within(screen.getByRole("radiogroup", { name: /marge/i })).getByRole("radio", { name: "10 %" }));
 
@@ -171,7 +188,7 @@ describe("exemple guidé", () => {
 
   it("ONB-04 : rien n'est ajouté à « Mes prix », même en enregistrant dans l'exemple", async () => {
     const user = userEvent.setup();
-    await openExample(user);
+    openExample(user);
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Enregistrer" }));
 
@@ -184,7 +201,7 @@ describe("exemple guidé", () => {
 
   it("n'écrit pas non plus sur le brouillon de l'utilisateur", async () => {
     const user = userEvent.setup();
-    await openExample(user);
+    openExample(user);
     await user.click(within(screen.getByRole("radiogroup", { name: /marge/i })).getByRole("radio", { name: "10 %" }));
     expect(localStorage.getItem(STORAGE_KEYS.draft)).toBeNull();
   });

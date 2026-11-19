@@ -65,6 +65,47 @@ export const STEP = { popDuration: 0.3, lineDuration: 0.5 } as const;
 export const SWAP = { duration: 0.3, fromRotation: -90 } as const;
 export const DISCLOSURE = { openDuration: 0.3, chevronDuration: 0.2 } as const;
 
+/**
+ * Onboarding illustré (DESIGN.md « Scènes »), en secondes sauf mention : chaque scène a sa chorégraphie, ces
+ * valeurs en sont la seule source. Titre mot à mot, glissement de scène, tirets de progression.
+ */
+export const ONBOARD = {
+  sceneSlidePx: 48,
+  sceneDuration: 0.45,
+  textDelay: 0.15,
+  wordStagger: 0.04,
+  wordDuration: 0.4,
+  messageDelay: 0.5,
+  dashDuration: 0.3,
+  awningDuration: 0.45,
+  bottleStagger: 0.08,
+  bottleDuration: 0.4,
+  tagStartAngle: 28,
+  tagTapAngle: 18,
+  tagSwingDuration: 1.4,
+  priceCountDelay: 0.5,
+  priceCountDuration: 0.9,
+  rowStagger: 0.14,
+  rowDuration: 0.4,
+  checkDuration: 0.3,
+  checkStagger: 0.18,
+  shackleLift: 14,
+  shackleDuration: 0.5,
+  slashDuration: 0.4,
+} as const;
+
+/** Accueil (DESIGN.md « Accueil »), en secondes : segments de « Reprendre », cartes du carrousel. */
+export const HOME = {
+  segmentDuration: 0.15,
+  segmentStagger: 0.15,
+  cardSlidePx: 40,
+  cardDuration: 0.4,
+  cardStagger: 0.08,
+} as const;
+
+/** Carrousel de conseils de l'accueil : un conseil toutes les 7 s, glissement de 32 px (durées en s). */
+export const TIP = { intervalMs: 7000, slidePx: 32, duration: 0.4 } as const;
+
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**

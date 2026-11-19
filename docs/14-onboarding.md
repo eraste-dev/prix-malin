@@ -26,9 +26,7 @@ Faire passer la personne de « une appli de plus » à **son premier prix**, en 
 ```mermaid
 flowchart LR
   S[Splash] --> C1[Carte 1<br/>Promesse] --> C2[Carte 2<br/>Comment ça marche] --> C3[Carte 3<br/>Vos données]
-  C3 --> Ch{Choix}
-  Ch -->|Calculer mon prix| Q1[Q1]
-  Ch -->|Voir un exemple| D[Exemple guidé]
+  C3 -->|Commencer| Q1[Q1]
   C1 -. Passer .-> A[Accueil]
   C2 -. Passer .-> A
   D --> R[Résultat de l'exemple]
@@ -45,12 +43,13 @@ flowchart LR
 
 Textes provisoires : la voix et le ton seront fixés dans le guide de rédaction (voir [07](07-brief-ux.md)) et **validés par la comptable** pour le fond.
 
-### Choix de fin (carte 3)
+### Fin de la présentation (carte 3)
 
 | Bouton | Hiérarchie | Résultat |
 |---|---|---|
-| **Calculer mon prix** | Principal | Ouvre Q1 ; l'onboarding est marqué vu |
-| **Voir un exemple d'abord** | Secondaire | Lance l'exemple guidé (ci-dessous) |
+| **Commencer** | Unique | Ouvre Q1 ; l'onboarding est marqué vu |
+
+*Décision du 2026-11-19 : « Voir un exemple d'abord » est retiré de la carte 3 (un seul bouton).* L'exemple guidé reste construit et joignable à l'adresse `#/exemple`, mais **n'a plus de point d'entrée dans l'app** : à replacer (Accueil, lien « Voir un exemple » de Q2) ou à supprimer.
 
 ## Exemple guidé
 
@@ -105,7 +104,7 @@ Aucune donnée personnelle, aucun envoi réseau.
 
 **ONB-02** — *Given* l'utilisateur touche « Passer » sur n'importe quelle carte, *Then* il arrive sur l'Accueil et l'onboarding n'est plus proposé.
 
-**ONB-03** — *Given* la carte 3, *When* il choisit « Calculer mon prix », *Then* Q1 s'ouvre avec tous les champs vides.
+**ONB-03** — *Given* la carte 3, *When* il choisit « Commencer », *Then* Q1 s'ouvre avec tous les champs vides.
 
 **ONB-04** — *Given* l'exemple guidé, *When* l'utilisateur le quitte, *Then* aucun prix n'est ajouté à « Mes prix ».
 

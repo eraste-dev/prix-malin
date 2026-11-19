@@ -103,7 +103,7 @@ describe("dans Calculer", () => {
   it("ne propose le choix que lorsque des charges partagées existent", () => {
     open("#/calculer");
     render(<App />);
-    expect(screen.queryByRole("radiogroup", { name: /origine des charges/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /utiliser mes charges partagées/i })).not.toBeInTheDocument();
   });
 
   it("« Mes charges partagées » remplace le champ par la part du produit (ici 100 % : 450 F)", async () => {
@@ -114,7 +114,7 @@ describe("dans Calculer", () => {
     await user.type(screen.getByLabelText(/ce que ça vous coûte/i), "210");
     await user.type(screen.getByLabelText(/ventes par mois/i), "2000");
 
-    await user.click(within(screen.getByRole("radiogroup", { name: /origine des charges/i })).getByRole("radio", { name: /mes charges partagées/i }));
+    await user.click(screen.getByRole("button", { name: /utiliser mes charges partagées/i }));
 
     expect(screen.queryByLabelText(/vos charges du mois/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("shared-share")).toHaveTextContent(/220\D000 F/);
@@ -130,7 +130,7 @@ describe("dans Calculer", () => {
     await user.type(screen.getByLabelText(/ce que ça vous coûte/i), "210");
     await user.type(screen.getByLabelText(/ventes par mois/i), "2000");
 
-    await user.click(within(screen.getByRole("radiogroup", { name: /origine des charges/i })).getByRole("radio", { name: /mes charges partagées/i }));
+    await user.click(screen.getByRole("button", { name: /utiliser mes charges partagées/i }));
 
     expect(screen.getByTestId("shared-share")).toHaveTextContent(/110\D000 F/);
     expect(screen.getByTestId("price")).toHaveTextContent("375");
@@ -141,10 +141,9 @@ describe("dans Calculer", () => {
     await shareCharges(user);
     open("#/calculer");
     render(<App />);
-    const group = () => within(screen.getByRole("radiogroup", { name: /origine des charges/i }));
-    await user.click(group().getByRole("radio", { name: /mes charges partagées/i }));
+    await user.click(screen.getByRole("button", { name: /utiliser mes charges partagées/i }));
 
-    await user.click(group().getByRole("radio", { name: /charges propres/i }));
+    await user.click(screen.getByRole("button", { name: /saisir mes propres charges/i }));
 
     expect(screen.getByLabelText(/vos charges du mois/i)).toBeInTheDocument();
   });
